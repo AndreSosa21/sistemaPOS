@@ -1,4 +1,3 @@
-// styles/register.tsx
 import { StyleSheet } from 'react-native';
 
 const registerStyles = StyleSheet.create({
@@ -11,52 +10,67 @@ const registerStyles = StyleSheet.create({
   },
   header: {
     fontSize: 28,
-    marginBottom: 8,
     fontWeight: 'bold',
+    marginBottom: 32,
+    color: '#DE3C4B',
   },
-  locationText: {
-    fontSize: 14,
-    marginBottom: 24,
-    color: '#888',
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    height: 50,
+    marginBottom: 16,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
   },
   input: {
-    width: '100%',
+    flex: 1,
     height: 50,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+    borderBottomWidth: 1,
+    borderBottomColor: '#DE3C4B', // Línea roja debajo del campo
     paddingHorizontal: 10,
   },
-  pickerContainer: {
-    width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
   picker: {
-    width: '100%',
+    flex: 1,
     height: 50,
+    color: '#333',
+    backgroundColor: 'white', // Sin fondo de selección
+    borderBottomWidth: 1,
+    borderBottomColor: '#DE3C4B', // Línea roja debajo del picker
+  },
+  pickerItem: {
+    color: '#333',
   },
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#28a745',
+    backgroundColor: '#DE3C4B',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 16,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
   },
-  linkText: {
+  loginLinkContainer: {
+    flexDirection: 'row',
     marginTop: 16,
-    color: '#007bff',
+  },
+  linkText: {
+    color: '#000',
     fontSize: 16,
+  },
+  loginText: {
+    color: '#DE3C4B',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
