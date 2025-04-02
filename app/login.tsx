@@ -1,12 +1,12 @@
+// app/login.tsx
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthContext } from '../context/AuthContext';
 import loginStyles from '../Styles/login';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../utils/FireBaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../utils/FireBaseConfig';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,33 +16,48 @@ const Login = () => {
   const router = useRouter();
 
   const handleLogin = async () => {
-    setLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Por favor, complete todos los campos.');
+      return;
+    }
 
+    setLoading(true);
+
+    try {
+      const userCredential = await login(email, password);
+      const user = userCredential.user;
+      
       const userDoc = await getDoc(doc(db, 'users', user.uid));
 
       if (userDoc.exists()) {
         const userType = userDoc.data().userType;
-
-        if (userType === 'mesero') {
-          router.push('/mesero');
-        } else if (userType === 'chef') {
-          router.push('/chef');
-        } else if (userType === 'cajero') {
-          router.push('/caja');
-        } else {
-          router.push('/login');
+        
+        switch(userType) {
+          case 'mesero':
+            router.push('/mesero');
+            break;
+          case 'chef':
+            router.push('/chef');
+            break;
+          case 'cajero':
+            router.push('/caja');
+            break;
+          case 'admin':
+            router.push('/admin');
+            break;
+          default:
+            Alert.alert('Error', 'Rol de usuario no válido');
+            router.push('/login');
         }
       } else {
-        Alert.alert('Error', 'No se encontró el rol del usuario');
+        Alert.alert('Error', 'Usuario no registrado en la base de datos');
         router.push('/login');
       }
     } catch (error) {
       setLoading(false);
+
       if (error instanceof FirebaseError) {
-        let errorMessage = '';
+        let errorMessage = 'Error al iniciar sesión';
         switch (error.code) {
           case 'auth/user-not-found':
             errorMessage = 'Usuario no encontrado';
@@ -51,15 +66,16 @@ const Login = () => {
             errorMessage = 'Contraseña incorrecta';
             break;
           case 'auth/invalid-email':
-            errorMessage = 'Email inválido';
+            errorMessage = 'Formato de email inválido';
             break;
-          default:
-            errorMessage = 'Error al iniciar sesión';
+          case 'auth/too-many-requests':
+            errorMessage = 'Demasiados intentos, intente más tarde';
             break;
         }
         Alert.alert('Error', errorMessage);
       } else {
-        Alert.alert('Error', 'Ha ocurrido un error inesperado');
+        Alert.alert('Error', 'Error inesperado');
+        console.error('Error detallado:', error);
       }
     }
   };
@@ -68,7 +84,6 @@ const Login = () => {
     <View style={loginStyles.container}>
       <Text style={loginStyles.title}>Welcome to POSitive</Text>
 
-      {/* Email Field */}
       <View style={loginStyles.inputContainer}>
         <Image source={require('../assets/images/persona.png')} style={loginStyles.icon} />
         <TextInput
@@ -81,7 +96,6 @@ const Login = () => {
         />
       </View>
 
-      {/* Password Field */}
       <View style={loginStyles.inputContainer}>
         <Image source={require('../assets/images/candado.png')} style={loginStyles.icon} />
         <TextInput
@@ -93,14 +107,16 @@ const Login = () => {
         />
       </View>
 
-      {/* Login Button */}
-      <TouchableOpacity style={loginStyles.button} onPress={handleLogin} disabled={loading}>
+      <TouchableOpacity 
+        style={loginStyles.button} 
+        onPress={handleLogin} 
+        disabled={loading}
+      >
         <Text style={loginStyles.buttonText}>
           {loading ? 'Cargando...' : 'Login'}
         </Text>
       </TouchableOpacity>
 
-      {/* Redirect to Register */}
       <View style={loginStyles.loginLinkContainer}>
         <Text style={loginStyles.linkText}>Don't have an account? </Text>
         <TouchableOpacity onPress={() => router.push('/register')}>

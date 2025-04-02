@@ -1,3 +1,5 @@
+// app/styles/register.tsx
+
 import { StyleSheet } from 'react-native';
 
 const registerStyles = StyleSheet.create({
@@ -5,7 +7,6 @@ const registerStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
     backgroundColor: '#fff',
   },
   header: {
@@ -32,16 +33,16 @@ const registerStyles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     borderBottomWidth: 1,
-    borderBottomColor: '#DE3C4B', // Línea roja debajo del campo
+    borderBottomColor: '#DE3C4B',
     paddingHorizontal: 10,
   },
   picker: {
     flex: 1,
     height: 50,
     color: '#333',
-    backgroundColor: 'white', // Sin fondo de selección
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: '#DE3C4B', // Línea roja debajo del picker
+    borderBottomColor: '#DE3C4B',
   },
   pickerItem: {
     color: '#333',
@@ -71,6 +72,19 @@ const registerStyles = StyleSheet.create({
     color: '#DE3C4B',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Estilos para el Modal
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo transparente
+  },
+  modalText: {
+    fontSize: 18,
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 

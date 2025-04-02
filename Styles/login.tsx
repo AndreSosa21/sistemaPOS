@@ -32,7 +32,7 @@ const loginStyles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     borderBottomWidth: 1,
-    borderBottomColor: '#DE3C4B', // Línea roja debajo del campo
+    borderBottomColor: '#DE3C4B',
     paddingHorizontal: 10,
   },
   button: {

@@ -17,44 +17,49 @@ export const AuthProvider = ({ children }: any) => {
     const unsubscribe = onAuthStateChanged(auth, (usr) => {
       setUser(usr);
       if (usr) {
-        // Obtiene el tipo de usuario desde Firestore
         getDoc(doc(db, "users", usr.uid))
           .then((docSnap) => {
             if (docSnap.exists()) {
-              setUserType(docSnap.data().userType);
-              // Redirige al usuario dependiendo de su tipo
-              if (docSnap.data().userType === 'mesero') {
-                router.replace('./app/mesero/index.tsx');
-              } else if (docSnap.data().userType === 'chef') {
-                router.replace('./app/chef/index.tsx');
-              } else if (docSnap.data().userType === 'cajero') {
-                router.replace('./app/caja/index.tsx');
+              const userType = docSnap.data().userType;
+              setUserType(userType);
+              
+              switch(userType) {
+                case 'mesero':
+                  router.push('/mesero');
+                  break;
+                case 'chef':
+                  router.push('/chef');
+                  break;
+                case 'cajero':
+                  router.push('/caja');
+                  break;
+                case 'admin':
+                  router.push('/admin');
+                  break;
+                default:
+                  router.push('/login');
               }
             }
           })
-          .catch((error) => console.error('Error fetching user type:', error));
+          .catch((error) => console.error('Error obteniendo rol:', error));
       }
     });
-
     return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      return await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      console.error("Error al iniciar sesión:", error);
+      throw error;
     }
-  };
-
-  const register = async (userData: { email: string, password: string, userType: string }) => {
-    // Registro de usuario ya hecho en el register.tsx
   };
 
   const logout = async () => {
     await auth.signOut();
     setUser(null);
     setUserType('');
+    router.push('/login');
   };
 
   return (
@@ -63,8 +68,7 @@ export const AuthProvider = ({ children }: any) => {
         user,
         userType,
         login,
-        register,
-        logout,
+        logout
       }}
     >
       {children}
