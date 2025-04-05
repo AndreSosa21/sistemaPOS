@@ -1,6 +1,6 @@
 // app/login.tsx
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthContext } from '../context/AuthContext';
 import loginStyles from '../Styles/login';
@@ -12,12 +12,15 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const { login } = useContext(AuthContext);
   const router = useRouter();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Por favor, complete todos los campos.');
+      setErrorMessage('Por favor, complete todos los campos.');
+      setModalVisible(true);
       return;
     }
 
@@ -46,11 +49,13 @@ const Login = () => {
             router.push('/admin');
             break;
           default:
-            Alert.alert('Error', 'Rol de usuario no válido');
+            setErrorMessage('Rol de usuario no válido');
+            setModalVisible(true);
             router.push('/login');
         }
       } else {
-        Alert.alert('Error', 'Usuario no registrado en la base de datos');
+        setErrorMessage('Usuario no registrado en la base de datos');
+        setModalVisible(true);
         router.push('/login');
       }
     } catch (error) {
@@ -72,10 +77,12 @@ const Login = () => {
             errorMessage = 'Demasiados intentos, intente más tarde';
             break;
         }
-        Alert.alert('Error', errorMessage);
+        setErrorMessage(errorMessage);
+        setModalVisible(true);
       } else {
-        Alert.alert('Error', 'Error inesperado');
+        setErrorMessage('Error inesperado');
         console.error('Error detallado:', error);
+        setModalVisible(true);
       }
     }
   };
@@ -123,6 +130,24 @@ const Login = () => {
           <Text style={loginStyles.registerText}>Sign up</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal de Error */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={loginStyles.modalView}>
+          <Text style={loginStyles.modalText}>{errorMessage}</Text>
+          <TouchableOpacity
+            style={loginStyles.button}
+            onPress={() => setModalVisible(false)} // Cierra el modal
+          >
+            <Text style={loginStyles.buttonText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };

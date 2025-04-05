@@ -1,4 +1,5 @@
 // context/CrudContext.tsx
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { db, storage } from "../utils/FireBaseConfig"; // Asegúrate de tener configurado Firebase
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -40,25 +41,45 @@ export const CrudProvider = ({ children }: any) => {
     try {
       let imageUrl = "";
       if (image) {
-        const storageRef = ref(storage, `images/products/${product.title}`);
-        const uploadTask = uploadBytesResumable(storageRef, image);
-        uploadTask.on(
-          "state_changed",
-          () => {},
-          (error) => {
-            console.error(error);
-          },
-          async () => {
-            imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            const docRef = await addDoc(collection(db, "products"), {
-              title: product.title,
-              price: product.price,
-              description: product.description,
-              imageUrl: imageUrl,
-            });
-            setProducts((prev) => [...prev, { ...product, id: docRef.id, imageUrl }]);
-          }
-        );
+        // Convertir la imagen a Blob
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+
+        // Determinar el tipo MIME de la imagen
+        const mimeType = blob.type;
+        if (mimeType.startsWith('image/')) {
+          const storageRef = ref(storage, `images/products/${product.title}`);
+          const uploadTask = uploadBytesResumable(storageRef, blob);
+
+          uploadTask.on(
+            "state_changed",
+            () => {},
+            (error) => {
+              console.error(error);
+            },
+            async () => {
+              // Obtener la URL de la imagen subida
+              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              const docRef = await addDoc(collection(db, "products"), {
+                title: product.title,
+                price: product.price,
+                description: product.description,
+                imageUrl: imageUrl,
+              });
+              setProducts((prev) => [...prev, { ...product, id: docRef.id, imageUrl }]);
+            }
+          );
+        } else {
+          throw new Error("El archivo seleccionado no es una imagen válida");
+        }
+      } else {
+        // Si no hay imagen, agregar el producto sin la imagen
+        const docRef = await addDoc(collection(db, "products"), {
+          title: product.title,
+          price: product.price,
+          description: product.description,
+        });
+        setProducts((prev) => [...prev, { ...product, id: docRef.id }]);
       }
     } catch (error) {
       console.error("Error adding product: ", error);
@@ -69,23 +90,34 @@ export const CrudProvider = ({ children }: any) => {
     try {
       let imageUrl = updatedProduct.imageUrl;
       if (image) {
-        const storageRef = ref(storage, `images/products/${updatedProduct.title}`);
-        const uploadTask = uploadBytesResumable(storageRef, image);
-        uploadTask.on(
-          "state_changed",
-          () => {},
-          (error) => {
-            console.error(error);
-          },
-          async () => {
-            imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            await updateDoc(doc(db, "products", productId), {
-              ...updatedProduct,
-              imageUrl: imageUrl,
-            });
-            setProducts((prev) => prev.map(product => product.id === productId ? { ...product, ...updatedProduct, imageUrl } : product));
-          }
-        );
+        // Convertir la imagen a Blob
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+
+        // Determinar el tipo MIME de la imagen
+        const mimeType = blob.type;
+        if (mimeType.startsWith('image/')) {
+          const storageRef = ref(storage, `images/products/${updatedProduct.title}`);
+          const uploadTask = uploadBytesResumable(storageRef, blob);
+
+          uploadTask.on(
+            "state_changed",
+            () => {},
+            (error) => {
+              console.error(error);
+            },
+            async () => {
+              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              await updateDoc(doc(db, "products", productId), {
+                ...updatedProduct,
+                imageUrl: imageUrl,
+              });
+              setProducts((prev) => prev.map(product => product.id === productId ? { ...product, ...updatedProduct, imageUrl } : product));
+            }
+          );
+        } else {
+          throw new Error("El archivo seleccionado no es una imagen válida");
+        }
       } else {
         await updateDoc(doc(db, "products", productId), {
           title: updatedProduct.title,

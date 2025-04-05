@@ -61,6 +61,19 @@ const loginStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  // Estilos para el Modal
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo transparente
+  },
+  modalText: {
+    fontSize: 18,
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
 });
 
 export default loginStyles;

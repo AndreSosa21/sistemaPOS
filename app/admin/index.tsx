@@ -1,5 +1,6 @@
-// app/admin/index.tsx
-import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
+// AdminMenu.tsx
+
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image } from "react-native";
 import React, { useState } from "react";
 import { CameraModal } from "../../components/CameraModal";
 import { useCrud } from "../../context/CrudContext";
@@ -7,7 +8,7 @@ import styles from "../../Styles/admin";
 
 export default function AdminMenu() {
   const { products, addProduct, updateProduct, deleteProduct } = useCrud();
-  const [image, setImage] = useState(undefined as any);
+  const [image, setImage] = useState<any>(undefined);
   const [isVisible, setVisible] = useState(false);
   const [newProduct, setNewProduct] = useState({
     title: "",
@@ -16,7 +17,6 @@ export default function AdminMenu() {
   });
 
   const handleAddProduct = () => {
-    // Agrega el producto sin el id, Firestore generará el id automáticamente
     addProduct(newProduct, image);
     setNewProduct({ title: "", price: "", description: "" });
     setImage(undefined);
@@ -24,7 +24,6 @@ export default function AdminMenu() {
 
   const handleUpdateProduct = (id: string | undefined) => {
     if (id) {
-      // Solo llamamos a update si el id no es undefined
       updateProduct(id, newProduct, image);
       setNewProduct({ title: "", price: "", description: "" });
       setImage(undefined);
@@ -33,72 +32,77 @@ export default function AdminMenu() {
 
   const handleDeleteProduct = (id: string | undefined) => {
     if (id) {
-      // Solo llamamos a delete si el id no es undefined
       deleteProduct(id);
     }
   };
 
+  const closeModal = () => {
+    setVisible(false);  // Close the camera modal
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Product Management</Text>
+      <Text style={styles.header}>Product Management</Text>
       
-      {/* Product Form */}
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={newProduct.title}
-        onChangeText={(text) => setNewProduct({ ...newProduct, title: text })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price"
-        value={newProduct.price}
-        onChangeText={(text) => setNewProduct({ ...newProduct, price: text })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={newProduct.description}
-        onChangeText={(text) => setNewProduct({ ...newProduct, description: text })}
-      />
-      
-      {/* Select Image Button */}
-      {image ? (
-        <View>
-          {/* image preview */}
-        </View>
-      ) : (
-        <TouchableOpacity onPress={() => setVisible(true)}>
-          <Text>Select Image</Text>
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Title"
+          value={newProduct.title}
+          onChangeText={(text) => setNewProduct({ ...newProduct, title: text })}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Price"
+          value={newProduct.price}
+          onChangeText={(text) => setNewProduct({ ...newProduct, price: text })}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Description"
+          value={newProduct.description}
+          onChangeText={(text) => setNewProduct({ ...newProduct, description: text })}
+        />
+        
+        {image ? (
+          <View style={styles.imagePreview}>
+            <Image source={{ uri: image.uri }} style={styles.image} />
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.imageButton} onPress={() => setVisible(true)}>
+            <Text style={styles.imageButtonText}>Select Image</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.button} onPress={handleAddProduct}>
+          <Text style={styles.buttonText}>Add Product</Text>
         </TouchableOpacity>
-      )}
+      </View>
 
-      {/* Add, Update, Delete Buttons */}
-      <TouchableOpacity style={styles.button} onPress={handleAddProduct}>
-        <Text style={styles.buttonText}>Add Product</Text>
-      </TouchableOpacity>
-
-      {/* Product List */}
       <FlatList
         data={products}
         keyExtractor={(item) => item.id || ""}
         renderItem={({ item }) => (
-          <View>
-            <Text>{item.title}</Text>
-            <Text>{item.price}</Text>
-            <Text>{item.description}</Text>
-            <TouchableOpacity onPress={() => handleUpdateProduct(item.id)}>
-              <Text>Update</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteProduct(item.id)}>
-              <Text>Delete</Text>
-            </TouchableOpacity>
+          <View style={styles.productItem}>
+            <Text style={styles.productText}>{item.title}</Text>
+            <Text style={styles.productText}>{item.price}</Text>
+            <Text style={styles.productText}>{item.description}</Text>
+            {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.image} />}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.updateButton} onPress={() => handleUpdateProduct(item.id)}>
+                <Text style={styles.updateButtonText}>Update</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteProduct(item.id)}>
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
 
       {/* Camera Modal */}
-      <CameraModal isVisible={isVisible} image={image} />
+      <CameraModal isVisible={isVisible} setImage={setImage} closeModal={closeModal} />
     </View>
   );
 }

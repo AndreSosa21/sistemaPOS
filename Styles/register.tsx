@@ -73,19 +73,39 @@ const registerStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  // Estilos para el Modal
   modalView: {
-    flex: 1,
-    justifyContent: 'center',
+    width: '80%', // Ajusta el ancho del modal (más pequeño)
+    maxWidth: 350, // Limita el ancho máximo del modal para que no sea demasiado grande
+    backgroundColor: '#fff', // Fondo blanco para el modal
+    borderRadius: 10, // Bordes redondeados
+    padding: 20,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo transparente
+    justifyContent: 'center',
+    shadowColor: '#000', // Sombra para darle profundidad
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // Elevación para dar sombra en Android
+     // Elevación para dar sombra en Android
+    position: 'absolute', // Asegura que el modal esté posicionado correctamente
+    top: '50%', // Ajusta la posición del modal desde la mitad de la pantalla
+    left: '50%', // Ajusta la posición del modal desde la mitad de la pantalla
+    transform: [{ translateX: -175 }, { translateY: -100 }], // Ajusta el modal para que esté centrado
   },
   modalText: {
-    fontSize: 18,
-    color: '#fff',
+    fontSize: 16, // Reduce el tamaño del texto
+    color: '#333', // Color oscuro para el texto
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 22, // Mejora la legibilidad del texto
   },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo transparente detrás del modal
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
 });
 
 export default registerStyles;
