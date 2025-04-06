@@ -30,7 +30,7 @@ const loginStyles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#333',
+    color: '#000',
     borderBottomWidth: 1,
     borderBottomColor: '#DE3C4B',
     paddingHorizontal: 10,

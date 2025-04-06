@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     borderRadius: 5,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F7F7F7', // Fondo suave para los inputs
+    color: '#333', // Color de texto oscuro para mejor legibilidad
   },
   button: {
     backgroundColor: '#3A4BE0', // Azul para el botón de añadir
