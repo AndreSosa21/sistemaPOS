@@ -1,18 +1,46 @@
-// styles/admin/index.tsx
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F7F7F7', // Fondo más suave
+    backgroundColor: '#F7F7F7',
+    justifyContent: 'space-between' ,
+    height: '100%',
+    width: '100%' // Fondo suave para una experiencia visual relajada
   },
+  
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 40,
+    backgroundColor: '#DE3C4B', // Rojo para la cabecera
+    alignItems: 'center',
+    width: '100%',
+    
+  },
+  menuIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff',
+  },
+  headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
+    color: '#fff',
+  },
+  personaIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff',
+  },
+  crudContainer: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
   },
   formContainer: {
     backgroundColor: '#FFF',
@@ -34,7 +62,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   button: {
-    backgroundColor: '#DE3C4B', // Color de botón personalizado
+    backgroundColor: '#3A4BE0', // Azul para el botón de añadir
     padding: 15,
     alignItems: 'center',
     borderRadius: 8,
@@ -46,7 +74,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   imageButton: {
-    backgroundColor: '#3A4BE0',
+    backgroundColor: '#DE3C4B', // Rojo para el botón de seleccionar imagen
     padding: 12,
     alignItems: 'center',
     borderRadius: 8,
@@ -80,13 +108,27 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 5,
   },
+  productContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  productImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  productDetails: {
+    flex: 1,
+  },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
   },
   updateButton: {
-    backgroundColor: '#3A4BE0',
+    backgroundColor: '#3A4BE0', // Azul para las acciones de actualización
     padding: 10,
     borderRadius: 5,
   },
@@ -94,12 +136,27 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   deleteButton: {
-    backgroundColor: '#DE3C4B',
+    backgroundColor: '#D9534F', // Rojo para las acciones de eliminación
     padding: 10,
     borderRadius: 5,
   },
   deleteButtonText: {
     color: '#FFF',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',  // Espaciado entre los iconos
+    alignItems: 'center',
+    backgroundColor: '#DE3C4B',  // Mismo color que el header
+    paddingVertical: 10,
+    marginTop: 'auto',
+    bottom: 0,
+    width: '100%',
+  },
+  footerIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff', // Color blanco para los iconos
   },
 });
 
