@@ -1,12 +1,6 @@
 // app/mesero/index.tsx
 import React, { useEffect, useContext, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { meseroStyles } from '../../Styles/mesero/index';
 import { useRouter } from 'expo-router';
@@ -14,6 +8,9 @@ import { useRouter } from 'expo-router';
 const Mesero = () => {
   const { userType } = useContext(AuthContext);
   const [role, setRole] = useState('');
+  const [showOrders, setOrders] = useState(false);
+  const [showTable, setTable] = useState(false);
+  const [showCart, setCart] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -22,11 +19,13 @@ const Mesero = () => {
     }
   }, [userType]);
 
-  const handleTablePress = (tableNumber: string) => {
-    router.push({ pathname: '/mesero/TableOrdersScreen', params: { table: tableNumber } });
-  };
+    const handleTablePress = (tableNumber: string) => {
+      // Navega a la pantalla de órdenes para la mesa seleccionada
+      router.push(`/mesero/TableOrdersScreen?table=${tableNumber}`);
+    };
 
   const handleNavigation = (screen: string) => {
+    // Navega a las pantallas de Órdenes o Perfil
     if (screen === 'orders') {
       router.push('/mesero/OrdersScreen');
     } else if (screen === 'profile') {
@@ -41,7 +40,7 @@ const Mesero = () => {
       {/* Header */}
       <View style={meseroStyles.header}>
         <View>
-          <Text style={meseroStyles.text}>Hello ! Andrea</Text>
+          <Text style={meseroStyles.text}>Hello! Andrea</Text>
           <Text style={meseroStyles.roleText}>{role}</Text>
         </View>
         <Image

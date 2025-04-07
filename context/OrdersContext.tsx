@@ -6,27 +6,27 @@ import { db } from '../utils/FireBaseConfig';
 const OrdersContext = createContext<any>(null);
 
 export const OrdersProvider = ({ children }: any) => {
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>([]);  // Almacena los productos en el carrito
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const addToCart = (item: any) => {
-    setCart([...cart, item]);
+    setCart((prevCart) => [...prevCart, item]);  // Añadir el producto al carrito
   };
 
   const clearCart = () => {
-    setCart([]);
+    setCart([]);  // Limpiar el carrito
     setSelectedTable(null);
   };
 
   const confirmOrder = async () => {
-    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);
+    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);  // Calcular total del carrito
     const orderData = {
       table: selectedTable,
       items: cart,
       total,
       createdAt: new Date(),
     };
-    await addDoc(collection(db, 'orders'), orderData);
+    await addDoc(collection(db, 'orders'), orderData);  // Guardar la orden en Firestore
     clearCart();
   };
 
