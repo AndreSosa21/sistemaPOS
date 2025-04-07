@@ -15,6 +15,11 @@ export default function RootLayout() {
           <Stack.Screen name="chef" />
           <Stack.Screen name="cajero" />
           <Stack.Screen name="admin" />
+           {/* Pantallas internas del mesero */}
+           <Stack.Screen name="mesero/OrdersScreen" />
+            <Stack.Screen name="mesero/CartScreen" />
+            <Stack.Screen name="mesero/ProfileScreen" />
+            <Stack.Screen name="mesero/TableOrdersScreen" />
         </Stack>
       </CrudProvider>
     </AuthProvider>
