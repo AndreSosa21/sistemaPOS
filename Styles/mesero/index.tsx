@@ -121,12 +121,20 @@ export const menuStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
     elevation: 2,
+    flexDirection: 'row', // Usamos fila para mostrar la imagen y el texto horizontalmente
+    alignItems: 'center', // Alinea los elementos verticalmente en el centro
   },
   itemText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textDark,
     marginBottom: 6,
+  },
+  itemImage: {
+    width: 50,  // Tamaño de la imagen
+    height: 50, // Tamaño de la imagen
+    borderRadius: 8, // Bordes redondeados
+    marginRight: 12,  // Espacio entre la imagen y el texto
   },
   addButton: {
     color: Colors.primary,
@@ -185,6 +193,39 @@ export const cartStyles = StyleSheet.create({
   confirmButtonText: {
     color: Colors.textLight,
     textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
+export const tableOrdersStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    padding: 20,
+  },
+  orderContainer: {
+    backgroundColor: '#fff',
+    marginBottom: 20,
+    padding: 15,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+  },
+  itemText: {
+    fontSize: 16,
+    marginBottom: 6,
+    color: Colors.textDark,
+  },
+  backButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: Colors.textLight,
     fontWeight: 'bold',
     fontSize: 16,
   },

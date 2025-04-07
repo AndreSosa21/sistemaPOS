@@ -3,11 +3,14 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '../context/AuthContext';
 import { CrudProvider } from '../context/CrudContext'; // Asegúrate de importar CrudProvider
+import { OrdersProvider } from '../context/OrdersContext'; 
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <CrudProvider>
+        <OrdersProvider>
+          {/* Aquí puedes agregar otros proveedores si es necesario */}
         <Stack initialRouteName="login" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="login" />
           <Stack.Screen name="register" />
@@ -15,12 +18,8 @@ export default function RootLayout() {
           <Stack.Screen name="chef" />
           <Stack.Screen name="cajero" />
           <Stack.Screen name="admin" />
-           {/* Pantallas internas del mesero */}
-           <Stack.Screen name="mesero/OrdersScreen" />
-            <Stack.Screen name="mesero/CartScreen" />
-            <Stack.Screen name="mesero/ProfileScreen" />
-            <Stack.Screen name="mesero/TableOrdersScreen" />
         </Stack>
+        </OrdersProvider>  
       </CrudProvider>
     </AuthProvider>
   );
