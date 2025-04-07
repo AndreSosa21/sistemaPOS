@@ -1,3 +1,5 @@
+// Styles/login.tsx
+
 import { StyleSheet } from 'react-native';
 
 const loginStyles = StyleSheet.create({
@@ -63,16 +65,35 @@ const loginStyles = StyleSheet.create({
   },
   // Estilos para el Modal
   modalView: {
-    flex: 1,
-    justifyContent: 'center',
+    width: '80%',
+    maxWidth: 350,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo transparente
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -175 }, { translateY: -100 }],
   },
   modalText: {
-    fontSize: 18,
-    color: '#fff',
+    fontSize: 16,
+    color: '#333',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

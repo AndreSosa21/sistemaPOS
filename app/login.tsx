@@ -138,14 +138,16 @@ const Login = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={loginStyles.modalView}>
-          <Text style={loginStyles.modalText}>{errorMessage}</Text>
-          <TouchableOpacity
-            style={loginStyles.button}
-            onPress={() => setModalVisible(false)} // Cierra el modal
-          >
-            <Text style={loginStyles.buttonText}>Volver</Text>
-          </TouchableOpacity>
+        <View style={loginStyles.modalBackground}>
+          <View style={loginStyles.modalView}>
+            <Text style={loginStyles.modalText}>{errorMessage}</Text>
+            <TouchableOpacity
+              style={loginStyles.button}
+              onPress={() => setModalVisible(false)} // Cierra el modal
+            >
+              <Text style={loginStyles.buttonText}>Volver</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>

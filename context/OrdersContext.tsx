@@ -1,4 +1,3 @@
-// context/OrdersContext.tsx
 import React, { createContext, useContext, useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../utils/FireBaseConfig';
@@ -22,11 +21,15 @@ export const OrdersProvider = ({ children }: any) => {
     const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);
     const orderData = {
       table: selectedTable,
-      items: cart,
+      items: cart.map((item) => ({
+        ...item,
+        status: "pending", // Estado inicial de los platos
+      })),
       total,
       createdAt: new Date(),
+      orderStatus: "pending", // Estado inicial de la orden
     };
-    await addDoc(collection(db, 'orders'), orderData);
+    const orderRef = await addDoc(collection(db, 'orders'), orderData);
     clearCart();
   };
 
