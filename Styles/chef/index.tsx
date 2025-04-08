@@ -1,69 +1,84 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
-const chefStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F7', // Fondo suave
+    padding: 20,
+    backgroundColor: "#F7F7F7",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#DE3C4B', // Rojo para la cabecera
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 40,
+    backgroundColor: "#DE3C4B", // Mismo color que en admin
+    alignItems: "center",
+    width: "100%",
   },
   headerText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: "bold",
+    color: "#fff",
   },
-  notificationIcon: {
+  personaIcon: {
     width: 30,
     height: 30,
-    tintColor: '#FFF',
+    tintColor: "#fff",
   },
-  tableItem: {
-    backgroundColor: '#FFF',
+  ordersList: {
+    padding: 20,
+  },
+  orderItem: {
+    backgroundColor: "#FFF",
     padding: 15,
     marginBottom: 15,
     borderRadius: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
   },
-  tableText: {
-    fontSize: 16,
-    color: '#333',
+  orderTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
     marginBottom: 5,
   },
-  viewOrderButton: {
-    backgroundColor: '#3A4BE0',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+  orderStatus: {
+    fontSize: 16,
+    marginBottom: 10,
   },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
+  dishItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 5,
+  },
+  dishText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  updateButton: {
+    backgroundColor: "#3A4BE0", // Azul para la acción de actualización
+    padding: 8,
+    borderRadius: 5,
+  },
+  updateButtonText: {
+    color: "#FFF",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',  // Espaciado entre los iconos
-    alignItems: 'center',
-    backgroundColor: '#DE3C4B',  // Mismo color que el header
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#DE3C4B",
     paddingVertical: 10,
+    width: "100%",
+    position: "absolute",
     bottom: 0,
-    width: '100%',
-    position: 'absolute',
-    left: 0,
   },
   footerIcon: {
     width: 30,
     height: 30,
-    tintColor: '#FFF',
+    tintColor: "#fff",
   },
 });
 
-export default chefStyles;
+export default styles;
