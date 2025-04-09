@@ -9,7 +9,7 @@ const Mesero = () => {
   const { userType } = useContext(AuthContext);
   const [role, setRole] = useState('');
   const router = useRouter();
-  const { tables } = useTable(); // Obtenemos la lista de mesas desde el contexto
+  const { tables } = useTable();
 
   useEffect(() => {
     if (userType === 'mesero') {
@@ -17,7 +17,8 @@ const Mesero = () => {
     }
   }, [userType]);
 
-  // Al presionar una mesa, se navega a la pantalla de órdenes solo si la mesa está Occupied.
+  // Al presionar una mesa, se navega solo si la mesa está ocupada;
+  // si la mesa está disponible se muestra una alerta.
   const handleTablePress = (tableName: string, status: string) => {
     if (status === 'Occupied') {
       router.push(`/mesero/TableOrdersScreen?table=${tableName}`);

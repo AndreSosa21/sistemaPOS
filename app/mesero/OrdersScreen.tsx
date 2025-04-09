@@ -43,15 +43,17 @@ const OrderScreen = () => {
     );
   };
 
-  // Validación para confirmar la orden: debe haber una mesa seleccionada
+  // Validación para confirmar la orden
   const handleConfirmOrder = async () => {
     if (!selectedTable) {
       Alert.alert('Error', 'Debe seleccionar una mesa para confirmar la orden.');
       return;
     }
+    // Confirmar la orden
     await confirmOrder();
-    updateTableStatus(selectedTable, 'Occupied');
-    Alert.alert('Éxito', 'Orden confirmada correctamente');
+    // Una vez confirmada la orden, actualizamos el estado de la mesa a Occupied
+    await updateTableStatus(selectedTable, 'Occupied');
+    Alert.alert('Éxito', 'Orden confirmada y mesa asignada como ocupada.');
   };
 
   return (

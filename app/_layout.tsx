@@ -21,7 +21,7 @@ export default function RootLayout() {
               <Stack.Screen name="admin" />
             </Stack>
           </TableProvider>
-        </OrdersProvider>  
+        </OrdersProvider>
       </CrudProvider>
     </AuthProvider>
   );
