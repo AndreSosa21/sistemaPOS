@@ -1,14 +1,15 @@
-// app/mesero/TableOrdersScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { db } from '../../utils/FireBaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useTable } from '../../context/TablesContext'; // Importamos el useTable hook
 import { tableOrdersStyles } from '../../Styles/mesero/index';
 
 const TableOrdersScreen = () => {
   const router = useRouter();
   const { table } = useLocalSearchParams();
+  const { tables } = useTable(); // Obtenemos las mesas desde el contexto
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -30,6 +31,9 @@ const TableOrdersScreen = () => {
       fetchOrders();
     }
   }, [table]);
+
+  // Buscar el estado de la mesa
+  const tableData = tables.find((t) => t.id === table);
 
   // Agrupar productos con cantidades y total por producto
   const groupItems = (items: any[]) => {
@@ -97,9 +101,22 @@ const TableOrdersScreen = () => {
         />
       )}
 
-      <TouchableOpacity onPress={() => window.history.back()} style={tableOrdersStyles.backButton}>
+      <TouchableOpacity onPress={() => router.back()} style={tableOrdersStyles.backButton}>
         <Text style={tableOrdersStyles.backButtonText}>Volver</Text>
       </TouchableOpacity>
+
+      {/* Mostrar el estado de la mesa con un color */}
+      <View
+        style={{
+          marginTop: 20,
+          padding: 10,
+          backgroundColor: tableData?.status === 'Available' ? 'green' : 'red',
+        }}
+      >
+        <Text style={{ color: 'white' }}>
+          Mesa {tableData?.name} está {tableData?.status}
+        </Text>
+      </View>
     </View>
   );
 };
