@@ -27,6 +27,13 @@ const styles = StyleSheet.create({
   ordersList: {
     padding: 20,
   },
+  sectionHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#333",
+  },
   orderItem: {
     backgroundColor: "#FFF",
     padding: 15,
