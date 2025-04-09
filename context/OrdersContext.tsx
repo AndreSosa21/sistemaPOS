@@ -25,6 +25,7 @@ export const OrdersProvider = ({ children }: any) => {
       items: cart,
       total,
       createdAt: new Date(),
+      status: 'creada',  // El estado inicial de la orden es "creada"
     };
     await addDoc(collection(db, 'orders'), orderData);  // Guardar la orden en Firestore
     clearCart();
