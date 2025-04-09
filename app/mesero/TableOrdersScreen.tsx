@@ -2,10 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-  // Usamos useRouter para obtener los parámetros de la URL
-import { db } from '../../utils/FireBaseConfig';  // Asegúrate de tener la configuración de Firebase
+import { db } from '../../utils/FireBaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { tableOrdersStyles } from '../../Styles/mesero/index';  // Estilos para la pantalla
+import { tableOrdersStyles } from '../../Styles/mesero/index';
 
 const TableOrdersScreen = () => {
   const router = useRouter();
@@ -13,11 +12,10 @@ const TableOrdersScreen = () => {
   const [orders, setOrders] = useState<any[]>([]);  // Almacena las órdenes asociadas a la mesa seleccionada
   const [loading, setLoading] = useState<boolean>(true);  // Para mostrar un mensaje de carga
 
-  // Función para obtener las órdenes de la mesa desde Firestore
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const q = query(collection(db, 'orders'), where('table', '==', table));  // Filtra las órdenes por número de mesa
+        const q = query(collection(db, 'orders'), where('table', '==', table));
         const snapshot = await getDocs(q);
         const ordersData = snapshot.docs.map((doc) => doc.data());
         setOrders(ordersData);
@@ -28,7 +26,7 @@ const TableOrdersScreen = () => {
       }
     };
 
-    if (table) {  // Asegúrate de que el número de mesa esté disponible
+    if (table) {
       fetchOrders();
     }
   }, [table]);
@@ -39,11 +37,9 @@ const TableOrdersScreen = () => {
         Órdenes de la mesa {table}
       </Text>
 
-      {/* Si se está cargando las órdenes, muestra un mensaje */}
       {loading ? (
         <Text style={{ color: 'gray' }}>Cargando órdenes...</Text>
       ) : (
-        // Si hay órdenes, se muestra la lista
         <FlatList
           data={orders}
           keyExtractor={(_, index) => index.toString()}
@@ -52,6 +48,7 @@ const TableOrdersScreen = () => {
               <Text style={tableOrdersStyles.itemText}>Mesa: {item.table}</Text>
               <Text style={tableOrdersStyles.itemText}>Total: ${item.total}</Text>
               <Text style={tableOrdersStyles.itemText}>Fecha: {item.createdAt.toDate().toLocaleString()}</Text>
+              <Text style={tableOrdersStyles.itemText}>Estado: {item.status}</Text> {/* Mostrar el estado */}
               <Text style={tableOrdersStyles.itemText}>Productos:</Text>
               {item.items.map((dish: any, idx: number) => (
                 <Text key={idx} style={tableOrdersStyles.itemText}>
@@ -63,7 +60,6 @@ const TableOrdersScreen = () => {
         />
       )}
 
-      {/* Botón para regresar */}
       <TouchableOpacity onPress={() => window.history.back()} style={tableOrdersStyles.backButton}>
         <Text style={tableOrdersStyles.backButtonText}>Volver</Text>
       </TouchableOpacity>
