@@ -1,3 +1,4 @@
+// app/mesero/OrdersScreen.tsx
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useCrud } from '../../context/CrudContext';
@@ -5,34 +6,103 @@ import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
 import { useRouter } from 'expo-router';
 
-const OrderScreen = () => {
+const OrdersScreen = () => {
   const { products } = useCrud();
-  const { cart, addToCart, selectedTable, setSelectedTable, confirmOrder, setCart } = useOrders();
+  const {
+    cart,
+    addToCart,
+    setCart,
+    selectedTable,
+    setSelectedTable,
+    confirmOrder,
+  } = useOrders();
+
   const router = useRouter();
+  const tables = ['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'];
 
-  // Listado predeterminado de mesas de T-1 a T-6
-  const tables = ["T-1", "T-2", "T-3", "T-4", "T-5", "T-6"];
-
-  // Función para eliminar un producto del carrito (solo a nivel visual)
-  const handleRemoveFromCart = (item: any) => {
-    setCart((prevCart: any[]) => prevCart.filter(cartItem => cartItem.id !== item.id));
+  // Manejo de cantidades
+  const increaseQuantity = (item: any) => {
+    const newCart = cart.map((cartItem: { id: any; quantity: any; }) =>
+      cartItem.id === item.id
+        ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+        : cartItem
+    );
+    setCart(newCart);
   };
 
-  // Renderizado de cada producto del menú
-  const renderProduct = ({ item }: { item: any }) => (
-    <View style={orderScreenStyles.productItem}>
-      <Image source={{ uri: item.imageUrl }} style={orderScreenStyles.productImage} />
-      <View style={orderScreenStyles.productDetails}>
-        <Text style={orderScreenStyles.productTitle}>{item.title}</Text>
-        <Text style={orderScreenStyles.productPrice}>${item.price}</Text>
+  const decreaseQuantity = (item: any) => {
+    const newCart = cart
+      .map((cartItem: { id: any; quantity: number; }) =>
+        cartItem.id === item.id && (cartItem.quantity || 1) > 1
+          ? { ...cartItem, quantity: cartItem.quantity - 1 }
+          : cartItem
+      )
+      .filter((cartItem: { quantity: number; }) => cartItem.quantity !== 0);
+    setCart(newCart);
+  };
+
+  const handleRemoveFromCart = (item: any) => {
+    const updatedCart = cart.filter((cartItem: { id: any; }) => cartItem.id !== item.id);
+    setCart(updatedCart);
+  };
+
+  const handleAddToCart = (product: any) => {
+    const exists = cart.find((item: { id: any; }) => item.id === product.id);
+    if (exists) {
+      increaseQuantity(product);
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const renderProduct = ({ item }: { item: any }) => {
+    const itemInCart = cart.find((cartItem: { id: any; }) => cartItem.id === item.id);
+    const quantity = itemInCart?.quantity || 0;
+    const totalPrice = item.price * quantity;
+
+    return (
+      <View style={orderScreenStyles.productItem}>
+        <Image source={{ uri: item.imageUrl }} style={orderScreenStyles.productImage} />
+        <View style={orderScreenStyles.productDetails}>
+          <Text style={orderScreenStyles.productTitle}>
+            {item.title} {quantity > 0 && `(${quantity})`}
+          </Text>
+          <Text style={orderScreenStyles.productPrice}>
+            ${quantity > 0 ? totalPrice : item.price}
+          </Text>
+          <Text style={orderScreenStyles.productDescription}>
+            {item.description}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={orderScreenStyles.addButton}
+          onPress={() => handleAddToCart(item)}
+        >
+          <Text style={orderScreenStyles.addButtonText}>Añadir</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={orderScreenStyles.addButton} onPress={() => addToCart(item)}>
-        <Text style={orderScreenStyles.addButtonText}>Añadir</Text>
-      </TouchableOpacity>
+    );
+  };
+
+  const renderCartItem = ({ item }: { item: any }) => (
+    <View style={orderScreenStyles.cartItem}>
+      <Text style={orderScreenStyles.cartItemText}>
+        {item.title} ({item.quantity}) - ${item.price * item.quantity}
+      </Text>
+      <View style={orderScreenStyles.cartActions}>
+        <TouchableOpacity onPress={() => decreaseQuantity(item)}>
+          <Text style={orderScreenStyles.quantityButton}>-</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => increaseQuantity(item)}>
+          <Text style={orderScreenStyles.quantityButton}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleRemoveFromCart(item)}>
+          <Text style={orderScreenStyles.removeButtonText}>Eliminar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
-  // Renderizado de cada mesa
   const renderTable = (tableLabel: string) => (
     <TouchableOpacity
       key={tableLabel}
@@ -48,12 +118,10 @@ const OrderScreen = () => {
 
   return (
     <ScrollView style={orderScreenStyles.container}>
-      {/* Cabecera del menú */}
       <View style={orderScreenStyles.header}>
         <Text style={orderScreenStyles.headerText}>Menú del Restaurante</Text>
       </View>
 
-      {/* Lista de productos */}
       <FlatList
         data={products}
         keyExtractor={(item) => (item.id ?? '').toString()}
@@ -62,46 +130,30 @@ const OrderScreen = () => {
         scrollEnabled={false}
       />
 
-      {/* Separador visual */}
       <View style={orderScreenStyles.divider} />
 
-      {/* Sección del carrito y selección de mesa */}
       <View style={orderScreenStyles.orderSection}>
         <Text style={orderScreenStyles.sectionTitle}>Carrito</Text>
+
         {cart.length === 0 ? (
           <Text style={orderScreenStyles.emptyCartText}>No hay productos en el carrito</Text>
         ) : (
           <FlatList
             data={cart}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={orderScreenStyles.cartItem}>
-                <Text style={orderScreenStyles.cartItemText}>
-                  {item.title} - ${item.price}
-                </Text>
-                <TouchableOpacity 
-                  style={orderScreenStyles.removeButton} 
-                  onPress={() => handleRemoveFromCart(item)}
-                >
-                  <Text style={orderScreenStyles.removeButtonText}>Eliminar</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderCartItem}
           />
         )}
 
         <Text style={orderScreenStyles.sectionTitle}>Seleccione Mesa</Text>
-        {/* Grilla de mesas */}
         <View style={orderScreenStyles.tableGrid}>
           {tables.map((table) => renderTable(table))}
         </View>
 
-        {/* Visualización de la mesa seleccionada */}
         <Text style={orderScreenStyles.selectedTableText}>
-          Mesa Seleccionada: {selectedTable ? selectedTable : "Ninguna"}
+          Mesa Seleccionada: {selectedTable || 'Ninguna'}
         </Text>
 
-        {/* Botón para confirmar la orden */}
         <TouchableOpacity style={orderScreenStyles.confirmButton} onPress={confirmOrder}>
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
@@ -110,4 +162,4 @@ const OrderScreen = () => {
   );
 };
 
-export default OrderScreen;
+export default OrdersScreen;

@@ -5,27 +5,63 @@ import { db } from '../utils/FireBaseConfig';
 const OrdersContext = createContext<any>(null);
 
 export const OrdersProvider = ({ children }: any) => {
-  const [cart, setCart] = useState<any[]>([]);  // Almacena los productos en el carrito
+  const [cart, setCart] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const addToCart = (item: any) => {
-    setCart(prevCart => [...prevCart, item]);
+    const existing = cart.find((p) => p.id === item.id);
+    if (existing) {
+      setCart((prev) =>
+        prev.map((p) =>
+          p.id === item.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
+        )
+      );
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }]);
+    }
+  };
+
+  const increaseQuantity = (id: string) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const decreaseQuantity = (id: string) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
   const clearCart = () => {
     setCart([]);
-    setSelectedTable(null);
+    // Nota: no se borra la mesa aquí
   };
 
   const confirmOrder = async () => {
-    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);
+    const total = cart.reduce(
+      (acc, item) => acc + parseFloat(item.price) * item.quantity,
+      0
+    );
+
     const orderData = {
       table: selectedTable,
-      items: cart, // Sin estado individual para cada plato
+      items: cart,
       total,
       createdAt: new Date(),
       orderStatus: 'pendiente',
     };
+
     await addDoc(collection(db, 'orders'), orderData);
     clearCart();
   };
@@ -34,10 +70,13 @@ export const OrdersProvider = ({ children }: any) => {
     <OrdersContext.Provider
       value={{
         cart,
-        addToCart,
-        setCart,           // Agregado para poder modificar el carrito desde OrderScreen
+        setCart,
         selectedTable,
         setSelectedTable,
+        addToCart,
+        increaseQuantity,
+        decreaseQuantity,
+        removeFromCart,
         confirmOrder,
       }}
     >
@@ -45,5 +84,6 @@ export const OrdersProvider = ({ children }: any) => {
     </OrdersContext.Provider>
   );
 };
+
 
 export const useOrders = () => useContext(OrdersContext);

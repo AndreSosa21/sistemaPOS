@@ -1,3 +1,4 @@
+// Styles/mesero/OrderScreen.ts
 import { StyleSheet } from 'react-native';
 
 const Colors = {
@@ -63,6 +64,11 @@ export const orderScreenStyles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textDark,
   },
+  productDescription: {
+    fontSize: 12,
+    color: '#555',
+    marginTop: 2,
+  },
   addButton: {
     backgroundColor: Colors.primary,
     paddingVertical: 8,
@@ -101,27 +107,31 @@ export const orderScreenStyles = StyleSheet.create({
     marginBottom: 12,
   },
   cartItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-    marginVertical: 4,
+    flexDirection: 'column',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    paddingVertical: 8,
+    marginBottom: 8,
   },
   cartItemText: {
     fontSize: 16,
     color: Colors.textDark,
+    marginBottom: 6,
   },
-  removeButton: {
-    backgroundColor: 'red',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+  cartActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  quantityButton: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginHorizontal: 6,
   },
   removeButtonText: {
-    color: Colors.textLight,
     fontSize: 12,
+    color: 'red',
     fontWeight: 'bold',
   },
   tableGrid: {
