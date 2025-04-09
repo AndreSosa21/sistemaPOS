@@ -1,22 +1,16 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { useCrud } from '../../context/CrudContext';
 import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
 import { useRouter } from 'expo-router';
+import { useTable, Table } from '../../context/TablesContext';
 
 const OrderScreen = () => {
   const { products } = useCrud();
-  const { cart, addToCart, selectedTable, setSelectedTable, confirmOrder, setCart } = useOrders();
+  const { cart, addToCart, selectedTable, setSelectedTable, confirmOrder } = useOrders();
+  const { tables, updateTableStatus } = useTable();
   const router = useRouter();
-
-  // Listado predeterminado de mesas de T-1 a T-6
-  const tables = ["T-1", "T-2", "T-3", "T-4", "T-5", "T-6"];
-
-  // Función para eliminar un producto del carrito (solo a nivel visual)
-  const handleRemoveFromCart = (item: any) => {
-    setCart((prevCart: any[]) => prevCart.filter(cartItem => cartItem.id !== item.id));
-  };
 
   // Renderizado de cada producto del menú
   const renderProduct = ({ item }: { item: any }) => (
@@ -32,19 +26,33 @@ const OrderScreen = () => {
     </View>
   );
 
-  // Renderizado de cada mesa
-  const renderTable = (tableLabel: string) => (
-    <TouchableOpacity
-      key={tableLabel}
-      style={[
-        orderScreenStyles.tableButton,
-        selectedTable === tableLabel && orderScreenStyles.tableButtonSelected,
-      ]}
-      onPress={() => setSelectedTable(tableLabel)}
-    >
-      <Text style={orderScreenStyles.tableButtonText}>{tableLabel}</Text>
-    </TouchableOpacity>
-  );
+  // Renderizado de cada mesa utilizando la información del TableContext
+  const renderTable = (table: Table) => {
+    let backgroundColor = table.status === 'Available' ? '#409744' : '#BA3A3A';
+    if (selectedTable === table.name) {
+      backgroundColor = '#F0AD4E'; // Amarillo si es la mesa seleccionada
+    }
+    return (
+      <TouchableOpacity
+        key={table.name}
+        style={[orderScreenStyles.tableButton, { backgroundColor }]}
+        onPress={() => setSelectedTable(table.name)}
+      >
+        <Text style={orderScreenStyles.tableButtonText}>{table.name}</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // Validación para confirmar la orden: debe haber una mesa seleccionada
+  const handleConfirmOrder = async () => {
+    if (!selectedTable) {
+      Alert.alert('Error', 'Debe seleccionar una mesa para confirmar la orden.');
+      return;
+    }
+    await confirmOrder();
+    updateTableStatus(selectedTable, 'Occupied');
+    Alert.alert('Éxito', 'Orden confirmada correctamente');
+  };
 
   return (
     <ScrollView style={orderScreenStyles.container}>
@@ -79,19 +87,13 @@ const OrderScreen = () => {
                 <Text style={orderScreenStyles.cartItemText}>
                   {item.title} - ${item.price}
                 </Text>
-                <TouchableOpacity 
-                  style={orderScreenStyles.removeButton} 
-                  onPress={() => handleRemoveFromCart(item)}
-                >
-                  <Text style={orderScreenStyles.removeButtonText}>Eliminar</Text>
-                </TouchableOpacity>
               </View>
             )}
           />
         )}
 
         <Text style={orderScreenStyles.sectionTitle}>Seleccione Mesa</Text>
-        {/* Grilla de mesas */}
+        {/* Grilla de mesas utilizando el TableContext */}
         <View style={orderScreenStyles.tableGrid}>
           {tables.map((table) => renderTable(table))}
         </View>
@@ -102,7 +104,7 @@ const OrderScreen = () => {
         </Text>
 
         {/* Botón para confirmar la orden */}
-        <TouchableOpacity style={orderScreenStyles.confirmButton} onPress={confirmOrder}>
+        <TouchableOpacity style={orderScreenStyles.confirmButton} onPress={handleConfirmOrder}>
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
       </View>
