@@ -1,10 +1,17 @@
 // app/mesero/OrdersScreen.tsx
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+} from 'react-native';
 import { useCrud } from '../../context/CrudContext';
 import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
-import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 const OrdersScreen = () => {
   const { products } = useCrud();
@@ -17,12 +24,10 @@ const OrdersScreen = () => {
     confirmOrder,
   } = useOrders();
 
-  const router = useRouter();
   const tables = ['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'];
 
-  // Manejo de cantidades
   const increaseQuantity = (item: any) => {
-    const newCart = cart.map((cartItem: { id: any; quantity: any; }) =>
+    const newCart = cart.map((cartItem: any) =>
       cartItem.id === item.id
         ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
         : cartItem
@@ -32,33 +37,39 @@ const OrdersScreen = () => {
 
   const decreaseQuantity = (item: any) => {
     const newCart = cart
-      .map((cartItem: { id: any; quantity: number; }) =>
+      .map((cartItem: any) =>
         cartItem.id === item.id && (cartItem.quantity || 1) > 1
           ? { ...cartItem, quantity: cartItem.quantity - 1 }
           : cartItem
       )
-      .filter((cartItem: { quantity: number; }) => cartItem.quantity !== 0);
+      .filter((cartItem: any) => cartItem.quantity !== 0);
     setCart(newCart);
   };
 
   const handleRemoveFromCart = (item: any) => {
-    const updatedCart = cart.filter((cartItem: { id: any; }) => cartItem.id !== item.id);
+    const updatedCart = cart.filter((cartItem: any) => cartItem.id !== item.id);
     setCart(updatedCart);
   };
 
   const handleAddToCart = (product: any) => {
-    const exists = cart.find((item: { id: any; }) => item.id === product.id);
+    const exists = cart.find((item: any) => item.id === product.id);
     if (exists) {
       increaseQuantity(product);
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Producto añadido al carrito',
+      text2: `${product.title} - $${product.price}`,
+    });
   };
 
   const renderProduct = ({ item }: { item: any }) => {
-    const itemInCart = cart.find((cartItem: { id: any; }) => cartItem.id === item.id);
+    const itemInCart = cart.find((cartItem: any) => cartItem.id === item.id);
     const quantity = itemInCart?.quantity || 0;
-    const totalPrice = item.price * quantity;
+    const totalPrice = quantity * item.price;
 
     return (
       <View style={orderScreenStyles.productItem}>
@@ -70,9 +81,7 @@ const OrdersScreen = () => {
           <Text style={orderScreenStyles.productPrice}>
             ${quantity > 0 ? totalPrice : item.price}
           </Text>
-          <Text style={orderScreenStyles.productDescription}>
-            {item.description}
-          </Text>
+          <Text style={orderScreenStyles.productDescription}>{item.description}</Text>
         </View>
         <TouchableOpacity
           style={orderScreenStyles.addButton}
@@ -87,7 +96,7 @@ const OrdersScreen = () => {
   const renderCartItem = ({ item }: { item: any }) => (
     <View style={orderScreenStyles.cartItem}>
       <Text style={orderScreenStyles.cartItemText}>
-        {item.title} ({item.quantity}) - ${item.price * item.quantity}
+        {item.title} ({item.quantity}) - ${item.quantity * item.price}
       </Text>
       <View style={orderScreenStyles.cartActions}>
         <TouchableOpacity onPress={() => decreaseQuantity(item)}>
@@ -116,6 +125,37 @@ const OrdersScreen = () => {
     </TouchableOpacity>
   );
 
+  const total = cart.reduce(
+    (sum: number, item: { quantity: any; price: string; }) => sum + (item.quantity || 1) * parseFloat(item.price),
+    0
+  );
+
+  const handleConfirm = async () => {
+    if (!selectedTable) {
+      Toast.show({
+        type: 'error',
+        text1: 'Mesa no seleccionada',
+        text2: 'Por favor selecciona una mesa antes de confirmar la orden.',
+      });
+      return;
+    }
+
+    if (cart.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Carrito vacío',
+        text2: 'Agrega productos antes de confirmar la orden.',
+      });
+      return;
+    }
+
+    await confirmOrder();
+    Toast.show({
+      type: 'success',
+      text1: 'Orden confirmada correctamente',
+    });
+  };
+
   return (
     <ScrollView style={orderScreenStyles.container}>
       <View style={orderScreenStyles.header}>
@@ -124,7 +164,7 @@ const OrdersScreen = () => {
 
       <FlatList
         data={products}
-        keyExtractor={(item) => (item.id ?? '').toString()}
+        keyExtractor={(item) => item.id?.toString() || ''}
         renderItem={renderProduct}
         contentContainerStyle={orderScreenStyles.productList}
         scrollEnabled={false}
@@ -136,11 +176,13 @@ const OrdersScreen = () => {
         <Text style={orderScreenStyles.sectionTitle}>Carrito</Text>
 
         {cart.length === 0 ? (
-          <Text style={orderScreenStyles.emptyCartText}>No hay productos en el carrito</Text>
+          <Text style={orderScreenStyles.emptyCartText}>
+            No hay productos en el carrito
+          </Text>
         ) : (
           <FlatList
             data={cart}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id}
             renderItem={renderCartItem}
           />
         )}
@@ -154,10 +196,19 @@ const OrdersScreen = () => {
           Mesa Seleccionada: {selectedTable || 'Ninguna'}
         </Text>
 
-        <TouchableOpacity style={orderScreenStyles.confirmButton} onPress={confirmOrder}>
+        <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>
+          Total: ${total.toFixed(2)}
+        </Text>
+
+        <TouchableOpacity
+          style={orderScreenStyles.confirmButton}
+          onPress={handleConfirm}
+        >
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
       </View>
+
+      <Toast />
     </ScrollView>
   );
 };
