@@ -5,51 +5,64 @@ import { db } from '../utils/FireBaseConfig';
 const OrdersContext = createContext<any>(null);
 
 export const OrdersProvider = ({ children }: any) => {
-  const [cart, setCart] = useState<any[]>([]);  // Almacena los productos en el carrito
+  const [cart, setCart] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   // Añadir producto al carrito
   const addToCart = (item: any) => {
-    setCart(prevCart => [...prevCart, item]);
+    const existing = cart.find((p) => p.id === item.id);
+    if (existing) {
+      setCart((prev) =>
+        prev.map((p) =>
+          p.id === item.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
+        )
+      );
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }]);
+    }
   };
 
-  const removeFromCart = (item: any, removeCompletely: boolean) => {
-    setCart((prevCart: any) => {
-      return prevCart.reduce((acc: any, cartItem: any) => {
-        if (cartItem.id === item.id) {
-          if (removeCompletely) {
-            // Eliminar el producto completamente si la cantidad llega a 0
-            return acc;
-          } else {
-            // Restar 1 de la cantidad del producto
-            cartItem.quantity -= 1;
-            // Si la cantidad es mayor que 0, lo agregamos de nuevo al carrito
-            if (cartItem.quantity > 0) {
-              acc.push(cartItem);
-            }
-          }
-        } else {
-          acc.push(cartItem);
-        }
-        return acc;
-      }, []);
-    });
-  };  
+  const increaseQuantity = (id: string) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const decreaseQuantity = (id: string) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const clearCart = () => {
     setCart([]);
-    setSelectedTable(null);
+    // Nota: no se borra la mesa aquí
   };
 
   const confirmOrder = async () => {
-    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);
+    const total = cart.reduce(
+      (acc, item) => acc + parseFloat(item.price) * item.quantity,
+      0
+    );
+
     const orderData = {
       table: selectedTable,
-      items: cart, // Sin estado individual para cada plato
+      items: cart,
       total,
       createdAt: new Date(),
       orderStatus: 'pendiente',
     };
+
     await addDoc(collection(db, 'orders'), orderData);
     clearCart();
   };
@@ -58,11 +71,13 @@ export const OrdersProvider = ({ children }: any) => {
     <OrdersContext.Provider
       value={{
         cart,
-        addToCart,
-        setCart,           // Agregado para poder modificar el carrito desde OrderScreen
-        removeFromCart,    // Función para eliminar productos o disminuir su cantidad
+        setCart,
         selectedTable,
         setSelectedTable,
+        addToCart,
+        increaseQuantity,
+        decreaseQuantity,
+        removeFromCart,
         confirmOrder,
       }}
     >
@@ -70,5 +85,6 @@ export const OrdersProvider = ({ children }: any) => {
     </OrdersContext.Provider>
   );
 };
+
 
 export const useOrders = () => useContext(OrdersContext);

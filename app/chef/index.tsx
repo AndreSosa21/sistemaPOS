@@ -1,9 +1,9 @@
-import styles from "../../Styles/chef";
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, SectionList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../utils/FireBaseConfig";
 import { useRouter } from "expo-router";
+import styles from "../../Styles/chef";
 
 export default function ChefScreen() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -72,21 +72,12 @@ export default function ChefScreen() {
     }
   };
 
-  // Se agrupa la lista de órdenes en secciones según el estado.
-  // Se ordena de mayor a menor prioridad: pendiente > preparando > listo > entregado.
-  const sections = [
-    { title: "Pendiente", data: orders.filter(order => order.orderStatus === "pendiente") },
-    { title: "Preparando", data: orders.filter(order => order.orderStatus === "preparando") },
-    { title: "Listo", data: orders.filter(order => order.orderStatus === "listo") },
-    { title: "Entregado", data: orders.filter(order => order.orderStatus === "entregado") },
-  ].filter(section => section.data.length > 0);
-
-  // Renderizado de cada pedido
-  const renderOrderItem = ({ item }: { item: any }) => (
+  // Renderizado de cada orden en la lista
+  const renderOrder = ({ item }: { item: any }) => (
     <View style={styles.orderItem}>
       {/* Nombre de la mesa */}
       <Text style={styles.orderTitle}>Mesa: {item.table}</Text>
-
+      
       {/* Lista de platos */}
       <View style={styles.dishesList}>
         {item.items.map((dish: any, index: number) => (
@@ -127,15 +118,12 @@ export default function ChefScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Lista de órdenes por sección */}
-      <SectionList
-        sections={sections}
+      {/* Lista de órdenes */}
+      <FlatList
+        data={orders}
         keyExtractor={(item) => item.id}
-        renderItem={renderOrderItem}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
         contentContainerStyle={styles.ordersList}
+        renderItem={renderOrder}
       />
 
       {/* Footer fijo */}

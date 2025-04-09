@@ -8,9 +8,9 @@ import { tableOrdersStyles } from '../../Styles/mesero/index';
 
 const TableOrdersScreen = () => {
   const router = useRouter();
-  const { table } = useLocalSearchParams();  // Obtiene el número de mesa desde los parámetros de la URL
-  const [orders, setOrders] = useState<any[]>([]);  // Almacena las órdenes asociadas a la mesa seleccionada
-  const [loading, setLoading] = useState<boolean>(true);  // Para mostrar un mensaje de carga
+  const { table } = useLocalSearchParams();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -31,6 +31,29 @@ const TableOrdersScreen = () => {
     }
   }, [table]);
 
+  // Agrupar productos con cantidades y total por producto
+  const groupItems = (items: any[]) => {
+    const grouped: { [title: string]: any } = {};
+
+    items.forEach((item) => {
+      const key = item.title;
+      const price = parseFloat(item.price);
+      if (grouped[key]) {
+        grouped[key].quantity += 1;
+        grouped[key].totalPrice += price;
+      } else {
+        grouped[key] = {
+          title: item.title,
+          description: item.description,
+          quantity: 1,
+          totalPrice: price,
+        };
+      }
+    });
+
+    return Object.values(grouped);
+  };
+
   return (
     <View style={tableOrdersStyles.container}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
@@ -43,20 +66,34 @@ const TableOrdersScreen = () => {
         <FlatList
           data={orders}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={tableOrdersStyles.orderContainer}>
-              <Text style={tableOrdersStyles.itemText}>Mesa: {item.table}</Text>
-              <Text style={tableOrdersStyles.itemText}>Total: ${item.total}</Text>
-              <Text style={tableOrdersStyles.itemText}>Fecha: {item.createdAt.toDate().toLocaleString()}</Text>
-              <Text style={tableOrdersStyles.itemText}>Estado: {item.orderStatus}</Text> {/* Mostrar el estado */}
-              <Text style={tableOrdersStyles.itemText}>Productos:</Text>
-              {item.items.map((dish: any, idx: number) => (
-                <Text key={idx} style={tableOrdersStyles.itemText}>
-                  • {dish.title} - ${dish.price}
+          renderItem={({ item }) => {
+            const groupedItems = groupItems(item.items);
+            return (
+              <View style={tableOrdersStyles.orderContainer}>
+                <Text style={tableOrdersStyles.itemText}>Mesa: {item.table}</Text>
+                <Text style={tableOrdersStyles.itemText}>Total: ${item.total.toLocaleString()}</Text>
+                <Text style={tableOrdersStyles.itemText}>
+                  Fecha: {item.createdAt.toDate().toLocaleString()}
                 </Text>
-              ))}
-            </View>
-          )}
+                <Text style={tableOrdersStyles.itemText}>
+                  Estado: {item.orderStatus}
+                </Text>
+                <Text style={tableOrdersStyles.itemText}>Productos:</Text>
+                {groupedItems.map((dish: any, idx: number) => (
+                  <View key={idx} style={{ marginBottom: 6 }}>
+                    <Text style={tableOrdersStyles.itemText}>
+                      • {dish.title} ({dish.quantity}) - ${dish.totalPrice.toLocaleString()}
+                    </Text>
+                    {dish.description && (
+                      <Text style={{ color: '#777', fontSize: 13, marginLeft: 10 }}>
+                        {dish.description}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            );
+          }}
         />
       )}
 
