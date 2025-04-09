@@ -8,9 +8,31 @@ import { useTable, Table } from '../../context/TablesContext';
 
 const OrderScreen = () => {
   const { products } = useCrud();
-  const { cart, addToCart, selectedTable, setSelectedTable, confirmOrder } = useOrders();
+  const { cart, addToCart, removeFromCart, selectedTable, setSelectedTable, confirmOrder } = useOrders();
   const { tables, updateTableStatus } = useTable();
   const router = useRouter();
+
+  // Agrupar productos del carrito y contar su cantidad
+  const groupedCart = cart.reduce((acc: any, item: any) => {
+    const existingItem = acc.find((i: any) => i.id === item.id);
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      acc.push({ ...item, quantity: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Función para eliminar producto del carrito, solo restando la cantidad
+  const handleRemoveFromCart = (item: any) => {
+    if (item.quantity > 1) {
+      // Si la cantidad es mayor que 1, solo reducimos la cantidad
+      removeFromCart(item, false); // Solo restar
+    } else {
+      // Si la cantidad es 1, eliminamos el producto completamente
+      removeFromCart(item, true); // Eliminar si la cantidad llega a 0
+    }
+  };
 
   // Renderizado de cada producto del menú
   const renderProduct = ({ item }: { item: any }) => (
@@ -78,17 +100,23 @@ const OrderScreen = () => {
       {/* Sección del carrito y selección de mesa */}
       <View style={orderScreenStyles.orderSection}>
         <Text style={orderScreenStyles.sectionTitle}>Carrito</Text>
-        {cart.length === 0 ? (
+        {groupedCart.length === 0 ? (
           <Text style={orderScreenStyles.emptyCartText}>No hay productos en el carrito</Text>
         ) : (
           <FlatList
-            data={cart}
+            data={groupedCart}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item }) => (
               <View style={orderScreenStyles.cartItem}>
                 <Text style={orderScreenStyles.cartItemText}>
-                  {item.title} - ${item.price}
+                  {item.title} - ${item.price} {item.quantity > 1 && `x${item.quantity}`}
                 </Text>
+                <TouchableOpacity
+                  style={orderScreenStyles.removeButton}
+                  onPress={() => handleRemoveFromCart(item)}
+                >
+                  <Text style={orderScreenStyles.removeButtonText}>Eliminar</Text>
+                </TouchableOpacity>
               </View>
             )}
           />

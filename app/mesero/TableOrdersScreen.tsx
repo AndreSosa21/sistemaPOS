@@ -48,7 +48,7 @@ const TableOrdersScreen = () => {
               <Text style={tableOrdersStyles.itemText}>Mesa: {item.table}</Text>
               <Text style={tableOrdersStyles.itemText}>Total: ${item.total}</Text>
               <Text style={tableOrdersStyles.itemText}>Fecha: {item.createdAt.toDate().toLocaleString()}</Text>
-              <Text style={tableOrdersStyles.itemText}>Estado: {item.status}</Text> {/* Mostrar el estado */}
+              <Text style={tableOrdersStyles.itemText}>Estado: {item.orderStatus}</Text> {/* Mostrar el estado */}
               <Text style={tableOrdersStyles.itemText}>Productos:</Text>
               {item.items.map((dish: any, idx: number) => (
                 <Text key={idx} style={tableOrdersStyles.itemText}>
