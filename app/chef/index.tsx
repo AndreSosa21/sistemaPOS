@@ -9,7 +9,7 @@ export default function ChefScreen() {
   const [orders, setOrders] = useState<any[]>([]);
   const router = useRouter();
 
-  // Recuperar las órdenes desde Firestore
+  // Recuperar las órdenes desde Firestore y almacenar el id del documento
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -17,6 +17,7 @@ export default function ChefScreen() {
         const ordersData = querySnapshot.docs.map((docItem) => ({
           createdAt: docItem.data().createdAt,
           ...docItem.data(),
+          id: docItem.id,
         }));
         setOrders(ordersData);
       } catch (error) {
@@ -27,48 +28,45 @@ export default function ChefScreen() {
     fetchOrders();
   }, []);
 
-  // Función para actualizar el estado de un plato
-  const updateDishStatus = async (orderId: string, dishIndex: number) => {
-    const order = orders.find((o) => o.createdAt === orderId);
+  // Función para actualizar el estado de la orden completa
+  const updateOrderStatus = async (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
     if (!order) return;
 
-    // Actualizar el estado del plato seleccionado
-    const updatedItems = order.items.map((dish: any, index: number) => {
-      if (index === dishIndex && dish.status === "pending") {
-        return { ...dish, status: "in_process" }; // Cambiar a "in_process"
-      }
-      if (index === dishIndex && dish.status === "in_process") {
-        return { ...dish, status: "prepared" }; // Cambiar a "prepared"
-      }
-      return dish;
-    });
-
-    const newOrderStatus = updatedItems.every((dish: any) => dish.status === "prepared")
-      ? "preparado"
-      : "pending";
+    let newStatus = order.orderStatus;
+    if (order.orderStatus === "pendiente") {
+      newStatus = "preparando";
+    } else if (order.orderStatus === "preparando") {
+      newStatus = "listo";
+    } else if (order.orderStatus === "listo") {
+      newStatus = "entregado";
+    } else if (order.orderStatus === "entregado") {
+      return; // No se actualiza si ya está entregado
+    }
 
     try {
-      // Actualizar en Firestore
+      // Actualizar en Firestore usando el id del documento
       await updateDoc(doc(db, "orders", orderId), {
-        items: updatedItems,
-        orderStatus: newOrderStatus,
+        orderStatus: newStatus,
       });
-      const updatedOrder = { ...order, items: updatedItems, orderStatus: newOrderStatus };
-      setOrders(orders.map((o) => (o.createdAt === orderId ? updatedOrder : o)));
+      const updatedOrder = { ...order, orderStatus: newStatus };
+      setOrders(orders.map((o) => (o.id === orderId ? updatedOrder : o)));
     } catch (error) {
       console.error("Error al actualizar la orden: ", error);
     }
   };
 
-  // Función para obtener el color según el estado del plato
+  // Función para obtener el color del botón según el estado de la orden
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending":
+      case "pendiente":
         return "#D9534F"; // Rojo
-      case "in_process":
+      case "preparando":
         return "#F0AD4E"; // Amarillo
-      case "prepared":
-        return "#5BC0DE"; // Verde
+      case "listo":
+        return "#006400"; // Verde oscuro
+      case "entregado":
+        return "#90EE90"; // Verde claro
       default:
         return "#DDD";
     }
@@ -76,42 +74,35 @@ export default function ChefScreen() {
 
   // Renderizado de cada orden en la lista
   const renderOrder = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.orderItem}
-      onPress={() => router.push(`/chef?createdAt=${item.createdAt}`)}
-    >
+    <View style={styles.orderItem}>
+      {/* Nombre de la mesa */}
       <Text style={styles.orderTitle}>Mesa: {item.table}</Text>
-      <Text style={styles.orderStatus}>Estado: {item.orderStatus}</Text>
-      {item.items.map((dish: any, index: number) => (
-        <View key={index} style={styles.dishItem}>
-          <Text style={styles.dishText}>
-            {dish.title} - 
-            <Text
-              style={{
-                backgroundColor: getStatusColor(dish.status),
-                color: "#FFF",
-                padding: 5,
-                borderRadius: 5,
-              }}
-            >
-              {dish.status === "pending"
-                ? "Pendiente"
-                : dish.status === "in_process"
-                ? "En Proceso"
-                : "Preparado"}
-            </Text>
+      
+      {/* Lista de platos */}
+      <View style={styles.dishesList}>
+        {item.items.map((dish: any, index: number) => (
+          <Text key={index} style={styles.dishText}>
+            {dish.title}
           </Text>
-          {dish.status === "pending" && (
-            <TouchableOpacity
-              style={styles.updateButton}
-              onPress={() => updateDishStatus(item.createdAt, index)}
-            >
-              <Text style={styles.updateButtonText}>Marcar Hecho</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ))}
-    </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Botón que muestra y actualiza el estado de la orden */}
+      <TouchableOpacity
+        style={[styles.statusButton, { backgroundColor: getStatusColor(item.orderStatus) }]}
+        onPress={() => updateOrderStatus(item.id)}
+      >
+        <Text style={styles.statusButtonText}>
+          {item.orderStatus === "pendiente"
+            ? "Pendiente"
+            : item.orderStatus === "preparando"
+            ? "Preparando"
+            : item.orderStatus === "listo"
+            ? "Listo"
+            : "Entregado"}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -130,7 +121,7 @@ export default function ChefScreen() {
       {/* Lista de órdenes */}
       <FlatList
         data={orders}
-        keyExtractor={(item) => item.createdAt.toString()}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.ordersList}
         renderItem={renderOrder}
       />
@@ -143,7 +134,7 @@ export default function ChefScreen() {
             style={styles.footerIcon}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/chef/platos")}>
+        <TouchableOpacity onPress={() => router.push("/chef")}>
           <Image
             source={require("../../assets/images/chef.png")}
             style={styles.footerIcon}

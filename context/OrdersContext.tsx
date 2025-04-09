@@ -9,33 +9,37 @@ export const OrdersProvider = ({ children }: any) => {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const addToCart = (item: any) => {
-    setCart((prevCart) => [...prevCart, item]);  // Añadir el producto al carrito
+    setCart(prevCart => [...prevCart, item]);
   };
 
   const clearCart = () => {
-    setCart([]);  // Limpiar el carrito
+    setCart([]);
     setSelectedTable(null);
   };
 
   const confirmOrder = async () => {
-    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);  // Calcular total del carrito
+    const total = cart.reduce((acc, item) => acc + parseFloat(item.price), 0);
     const orderData = {
       table: selectedTable,
-      items: cart.map((item) => ({
-        ...item,
-        status: "pending", // Estado inicial de los platos
-      })),
+      items: cart, // Sin estado individual para cada plato
       total,
       createdAt: new Date(),
-      status: 'creada',  // El estado inicial de la orden es "creada"
+      orderStatus: 'pendiente',
     };
-    await addDoc(collection(db, 'orders'), orderData);  // Guardar la orden en Firestore
+    await addDoc(collection(db, 'orders'), orderData);
     clearCart();
   };
 
   return (
     <OrdersContext.Provider
-      value={{ cart, addToCart, selectedTable, setSelectedTable, confirmOrder }}
+      value={{
+        cart,
+        addToCart,
+        setCart,           // Agregado para poder modificar el carrito desde OrderScreen
+        selectedTable,
+        setSelectedTable,
+        confirmOrder,
+      }}
     >
       {children}
     </OrdersContext.Provider>

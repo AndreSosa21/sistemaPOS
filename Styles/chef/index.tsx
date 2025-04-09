@@ -42,27 +42,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
   },
-  orderStatus: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  dishItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 5,
+  dishesList: {
+    marginVertical: 10,
   },
   dishText: {
     fontSize: 16,
     color: "#333",
+    marginVertical: 2,
   },
-  updateButton: {
-    backgroundColor: "#3A4BE0", // Azul para la acción de actualización
-    padding: 8,
+  statusButton: {
+    padding: 10,
     borderRadius: 5,
+    alignItems: "center",
+    marginTop: 10,
   },
-  updateButtonText: {
+  statusButtonText: {
     color: "#FFF",
+    fontWeight: "bold",
   },
   footer: {
     flexDirection: "row",

@@ -29,7 +29,7 @@ const Mesero = () => {
     if (screen === 'orders') {
       router.push('/mesero/OrdersScreen');
     } else if (screen === 'profile') {
-      router.push('/mesero/ProfileScreen');
+      router.push('/mesero');
     } else if (screen === 'logout') {
       router.push('/login');
     }
