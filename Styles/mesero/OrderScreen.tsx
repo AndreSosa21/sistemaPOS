@@ -1,4 +1,3 @@
-// Styles/mesero/OrderScreen.ts
 import { StyleSheet } from 'react-native';
 
 const Colors = {
@@ -8,6 +7,7 @@ const Colors = {
   textDark: '#000000',
   textLight: '#FFFFFF',
   tableInactive: '#EDEDED',   // Gris claro para mesas sin seleccionar
+  modalBackground: 'rgba(0, 0, 0, 0.5)', // Fondo del modal
 };
 
 export const orderScreenStyles = StyleSheet.create({
@@ -176,5 +176,40 @@ export const orderScreenStyles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  scanButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  scanButtonText: {
+    color: Colors.textLight,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.modalBackground,
+  },
+  camera: {
+    width: '100%',
+    height: '100%',
+  },
+  closeModalButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: Colors.primary,
+    padding: 10,
+    borderRadius: 50,
+  },
+  closeModalButtonText: {
+    color: Colors.textLight,
+    fontWeight: 'bold',
   },
 });

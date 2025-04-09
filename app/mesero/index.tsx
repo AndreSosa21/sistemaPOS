@@ -101,8 +101,7 @@ const Mesero = () => {
           />
         </TouchableOpacity>
       </View>
-    </View>
-  );
+    </View>  );
 };
 
 export default Mesero;
