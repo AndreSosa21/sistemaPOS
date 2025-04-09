@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { db } from '../../utils/FireBaseConfig';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore'; // Importamos onSnapshot
 import { useTable } from '../../context/TablesContext'; // Importamos el useTable hook
 import { tableOrdersStyles } from '../../Styles/mesero/index';
 
@@ -14,44 +14,20 @@ const TableOrdersScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const q = query(collection(db, 'orders'), where('table', '==', table));
-        const snapshot = await getDocs(q);
-        const ordersData = snapshot.docs.map((doc) => doc.data());
-        setOrders(ordersData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error al obtener las órdenes:', error);
-        setLoading(false);
-      }
-    };
+    // Función para escuchar cambios en tiempo real
+    const q = query(collection(db, 'orders'), where('table', '==', table));
 
-    if (table) {
-      fetchOrders();
-    }
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const ordersData = snapshot.docs.map((doc) => doc.data());
+      setOrders(ordersData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error al obtener las órdenes:', error);
+      setLoading(false);
+    });
 
-    // Función para actualizar el tiempo de las órdenes cada segundo
-    const interval = setInterval(() => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => {
-          const currentTime = new Date();
-          const orderTime = order.createdAt.toDate(); // Convertir a objeto Date
-          const timeDiffInMs = currentTime.getTime() - orderTime.getTime(); // Diferencia en milisegundos
-
-          // Calcular horas, minutos y segundos
-          const hours = Math.floor(timeDiffInMs / (1000 * 60 * 60));
-          const minutes = Math.floor((timeDiffInMs % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeDiffInMs % (1000 * 60)) / 1000);
-
-          // Crear un formato adecuado: "hh:mm:ss"
-          const timeElapsed = `${hours}:${minutes}:${seconds}`;
-          return { ...order, timeElapsed };
-        })
-      );
-    }, 1000); // Actualiza cada segundo
-
-    return () => clearInterval(interval); // Limpiar intervalo al desmontar el componente
+    // Limpiar el listener al desmontar el componente
+    return () => unsubscribe();
   }, [table]);
 
   // Buscar el estado de la mesa
