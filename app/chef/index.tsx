@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../utils/FireBaseConfig";
 import { useRouter } from "expo-router";
 import styles from "../../Styles/chef";
@@ -11,43 +11,21 @@ export default function ChefScreen() {
 
   // Recuperar las órdenes desde Firestore y almacenar el id del documento
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "orders"));
-        const ordersData = querySnapshot.docs.map((docItem) => ({
-          createdAt: docItem.data().createdAt,
-          ...docItem.data(),
-          id: docItem.id,
-        }));
-        setOrders(ordersData);
-      } catch (error) {
-        console.error("Error al obtener las órdenes: ", error);
-      }
-    };
+    const q = collection(db, "orders");
 
-    fetchOrders();
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const ordersData = querySnapshot.docs.map((docItem) => ({
+        createdAt: docItem.data().createdAt,
+        ...docItem.data(),
+        id: docItem.id,
+      }));
+      setOrders(ordersData);
+    }, (error) => {
+      console.error("Error al obtener las órdenes: ", error);
+    });
 
-    // Actualizar el tiempo transcurrido cada segundo
-    const interval = setInterval(() => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) => {
-          const currentTime = new Date();
-          const orderTime = order.createdAt.toDate(); // Convertir a objeto Date
-          const timeDiffInMs = currentTime.getTime() - orderTime.getTime(); // Diferencia en milisegundos
-
-          // Calcular horas, minutos y segundos
-          const hours = Math.floor(timeDiffInMs / (1000 * 60 * 60));
-          const minutes = Math.floor((timeDiffInMs % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeDiffInMs % (1000 * 60)) / 1000);
-
-          // Crear un formato adecuado: "hh:mm:ss"
-          const timeElapsed = `${hours}:${minutes}:${seconds}`;
-          return { ...order, timeElapsed };
-        })
-      );
-    }, 1000); // Actualiza cada segundo
-
-    return () => clearInterval(interval); // Limpiar intervalo al desmontar el componente
+    // Limpiar el listener al desmontar el componente
+    return () => unsubscribe();
   }, []);
 
   // Función para actualizar el estado de la orden completa
