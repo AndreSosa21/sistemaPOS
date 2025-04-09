@@ -6,19 +6,50 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  ScrollView, Alert,
+  ScrollView,
 } from 'react-native';
 import { useCrud } from '../../context/CrudContext';
 import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
 import Toast from 'react-native-toast-message';
-import { useTable, Table } from '../../context/TablesContext';
 
 const OrdersScreen = () => {
   const { products } = useCrud();
-  const { cart, addToCart, selectedTable, setSelectedTable, confirmOrder } = useOrders();
-  const { tables, updateTableStatus } = useTable();
-  const router = useRouter();
+  const {
+    cart,
+    addToCart,
+    setCart,
+    selectedTable,
+    setSelectedTable,
+    confirmOrder,
+  } = useOrders();
+
+  const tables = ['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'];
+
+  const increaseQuantity = (item: any) => {
+    const newCart = cart.map((cartItem: any) =>
+      cartItem.id === item.id
+        ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+        : cartItem
+    );
+    setCart(newCart);
+  };
+
+  const decreaseQuantity = (item: any) => {
+    const newCart = cart
+      .map((cartItem: any) =>
+        cartItem.id === item.id && (cartItem.quantity || 1) > 1
+          ? { ...cartItem, quantity: cartItem.quantity - 1 }
+          : cartItem
+      )
+      .filter((cartItem: any) => cartItem.quantity !== 0);
+    setCart(newCart);
+  };
+
+  const handleRemoveFromCart = (item: any) => {
+    const updatedCart = cart.filter((cartItem: any) => cartItem.id !== item.id);
+    setCart(updatedCart);
+  };
 
   const handleAddToCart = (product: any) => {
     const exists = cart.find((item: any) => item.id === product.id);
@@ -81,34 +112,48 @@ const OrdersScreen = () => {
     </View>
   );
 
-  // Renderizado de cada mesa utilizando la información del TableContext
-  const renderTable = (table: Table) => {
-    let backgroundColor = table.status === 'Available' ? '#409744' : '#BA3A3A';
-    if (selectedTable === table.name) {
-      backgroundColor = '#F0AD4E'; // Amarillo si es la mesa seleccionada
-    }
-    return (
-      <TouchableOpacity
-        key={table.name}
-        style={[orderScreenStyles.tableButton, { backgroundColor }]}
-        onPress={() => setSelectedTable(table.name)}
-      >
-        <Text style={orderScreenStyles.tableButtonText}>{table.name}</Text>
-      </TouchableOpacity>
-    );
-  };
+  const renderTable = (tableLabel: string) => (
+    <TouchableOpacity
+      key={tableLabel}
+      style={[
+        orderScreenStyles.tableButton,
+        selectedTable === tableLabel && orderScreenStyles.tableButtonSelected,
+      ]}
+      onPress={() => setSelectedTable(tableLabel)}
+    >
+      <Text style={orderScreenStyles.tableButtonText}>{tableLabel}</Text>
+    </TouchableOpacity>
+  );
 
-  // Validación para confirmar la orden
-  const handleConfirmOrder = async () => {
+  const total = cart.reduce(
+    (sum: number, item: { quantity: any; price: string; }) => sum + (item.quantity || 1) * parseFloat(item.price),
+    0
+  );
+
+  const handleConfirm = async () => {
     if (!selectedTable) {
-      Alert.alert('Error', 'Debe seleccionar una mesa para confirmar la orden.');
+      Toast.show({
+        type: 'error',
+        text1: 'Mesa no seleccionada',
+        text2: 'Por favor selecciona una mesa antes de confirmar la orden.',
+      });
       return;
     }
-    // Confirmar la orden
+
+    if (cart.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Carrito vacío',
+        text2: 'Agrega productos antes de confirmar la orden.',
+      });
+      return;
+    }
+
     await confirmOrder();
-    // Una vez confirmada la orden, actualizamos el estado de la mesa a Occupied
-    await updateTableStatus(selectedTable, 'Occupied');
-    Alert.alert('Éxito', 'Orden confirmada y mesa asignada como ocupada.');
+    Toast.show({
+      type: 'success',
+      text1: 'Orden confirmada correctamente',
+    });
   };
 
   return (
@@ -155,8 +200,10 @@ const OrdersScreen = () => {
           Total: ${total.toFixed(2)}
         </Text>
 
-        {/* Botón para confirmar la orden */}
-        <TouchableOpacity style={orderScreenStyles.confirmButton} onPress={handleConfirmOrder}>
+        <TouchableOpacity
+          style={orderScreenStyles.confirmButton}
+          onPress={handleConfirm}
+        >
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
       </View>

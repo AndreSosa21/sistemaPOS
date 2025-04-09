@@ -1,15 +1,17 @@
+// app/mesero/index.tsx
 import React, { useEffect, useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { meseroStyles } from '../../Styles/mesero/index';
 import { useRouter } from 'expo-router';
-import { useTable } from '../../context/TablesContext';
 
 const Mesero = () => {
   const { userType } = useContext(AuthContext);
   const [role, setRole] = useState('');
+  const [showOrders, setOrders] = useState(false);
+  const [showTable, setTable] = useState(false);
+  const [showCart, setCart] = useState(false);
   const router = useRouter();
-  const { tables } = useTable();
 
   useEffect(() => {
     if (userType === 'mesero') {
@@ -17,17 +19,13 @@ const Mesero = () => {
     }
   }, [userType]);
 
-  // Al presionar una mesa, se navega solo si la mesa está ocupada;
-  // si la mesa está disponible se muestra una alerta.
-  const handleTablePress = (tableName: string, status: string) => {
-    if (status === 'Occupied') {
-      router.push(`/mesero/TableOrdersScreen?table=${tableName}`);
-    } else {
-      Alert.alert('Mesa Disponible', 'La mesa seleccionada se encuentra libre y no tiene órdenes asignadas.');
-    }
-  };
+    const handleTablePress = (tableNumber: string) => {
+      // Navega a la pantalla de órdenes para la mesa seleccionada
+      router.push(`/mesero/TableOrdersScreen?table=${tableNumber}`);
+    };
 
   const handleNavigation = (screen: string) => {
+    // Navega a las pantallas de Órdenes o Perfil
     if (screen === 'orders') {
       router.push('/mesero/OrdersScreen');
     } else if (screen === 'profile') {
@@ -65,19 +63,13 @@ const Mesero = () => {
 
       {/* Table grid */}
       <ScrollView contentContainerStyle={meseroStyles.tableGrid}>
-        {tables.map((table) => (
+        {['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'].map((table) => (
           <TouchableOpacity
-            key={table.name}
-            style={[
-              meseroStyles.table,
-              {
-                backgroundColor:
-                  table.status === 'Available' ? '#409744' : '#BA3A3A',
-              },
-            ]}
-            onPress={() => handleTablePress(table.name, table.status)}
+            key={table}
+            style={meseroStyles.table}
+            onPress={() => handleTablePress(table)}
           >
-            <Text style={meseroStyles.tableText}>{table.name}</Text>
+            <Text style={meseroStyles.tableText}>{table}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
