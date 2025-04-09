@@ -26,6 +26,28 @@ export default function ChefScreen() {
     };
 
     fetchOrders();
+
+    // Actualizar el tiempo transcurrido cada segundo
+    const interval = setInterval(() => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          const currentTime = new Date();
+          const orderTime = order.createdAt.toDate(); // Convertir a objeto Date
+          const timeDiffInMs = currentTime.getTime() - orderTime.getTime(); // Diferencia en milisegundos
+
+          // Calcular horas, minutos y segundos
+          const hours = Math.floor(timeDiffInMs / (1000 * 60 * 60));
+          const minutes = Math.floor((timeDiffInMs % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((timeDiffInMs % (1000 * 60)) / 1000);
+
+          // Crear un formato adecuado: "hh:mm:ss"
+          const timeElapsed = `${hours}:${minutes}:${seconds}`;
+          return { ...order, timeElapsed };
+        })
+      );
+    }, 1000); // Actualiza cada segundo
+
+    return () => clearInterval(interval); // Limpiar intervalo al desmontar el componente
   }, []);
 
   // Función para actualizar el estado de la orden completa
@@ -102,6 +124,11 @@ export default function ChefScreen() {
             : "Entregado"}
         </Text>
       </TouchableOpacity>
+
+      {/* Tiempo transcurrido */}
+      <Text style={styles.timeText}>
+        Tiempo transcurrido: {item.timeElapsed} (hh:mm:ss)
+      </Text>
     </View>
   );
 

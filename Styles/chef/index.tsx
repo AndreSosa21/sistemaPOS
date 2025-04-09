@@ -60,6 +60,11 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "bold",
   },
+  timeText: {
+    fontSize: 14,
+    color: "#777",
+    marginTop: 10,
+  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",

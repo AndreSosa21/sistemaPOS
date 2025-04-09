@@ -1,4 +1,3 @@
-// app/mesero/TableOrdersScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -29,6 +28,28 @@ const TableOrdersScreen = () => {
     if (table) {
       fetchOrders();
     }
+
+    // Función para actualizar el tiempo de las órdenes cada segundo
+    const interval = setInterval(() => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          const currentTime = new Date();
+          const orderTime = order.createdAt.toDate(); // Convertir a objeto Date
+          const timeDiffInMs = currentTime.getTime() - orderTime.getTime(); // Diferencia en milisegundos
+
+          // Calcular horas, minutos y segundos
+          const hours = Math.floor(timeDiffInMs / (1000 * 60 * 60));
+          const minutes = Math.floor((timeDiffInMs % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((timeDiffInMs % (1000 * 60)) / 1000);
+
+          // Crear un formato adecuado: "hh:mm:ss"
+          const timeElapsed = `${hours}:${minutes}:${seconds}`;
+          return { ...order, timeElapsed };
+        })
+      );
+    }, 1000); // Actualiza cada segundo
+
+    return () => clearInterval(interval); // Limpiar intervalo al desmontar el componente
   }, [table]);
 
   // Agrupar productos con cantidades y total por producto
@@ -77,6 +98,9 @@ const TableOrdersScreen = () => {
                 </Text>
                 <Text style={tableOrdersStyles.itemText}>
                   Estado: {item.orderStatus}
+                </Text>
+                <Text style={tableOrdersStyles.itemText}>
+                  Tiempo transcurrido: {item.timeElapsed} (hh:mm:ss)
                 </Text>
                 <Text style={tableOrdersStyles.itemText}>Productos:</Text>
                 {groupedItems.map((dish: any, idx: number) => (
