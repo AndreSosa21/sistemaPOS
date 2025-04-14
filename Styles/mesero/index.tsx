@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 const Colors = {
-  primary: '#C94949',         // Rojo (header y footer)
+  primary: '#DE3C4B',         // Rojo (header y footer)
   secondary: '#63A46C',       // Verde (mesas disponibles)
   background: '#FDF8F7',      // Fondo crema
   textDark: '#000000',
