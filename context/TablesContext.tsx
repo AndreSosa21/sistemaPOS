@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { db } from '../utils/FireBaseConfig';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, addDoc } from 'firebase/firestore';
 
 export type TableStatus = 'Available' | 'Occupied';
 
@@ -27,6 +27,7 @@ const TableContext = createContext<TableContextProps>({
 });
 
 export const TableProvider = ({ children }: { children: ReactNode }) => {
+  // Mesas por defecto
   const initialTables: Table[] = [
     { id: 'T-1', name: 'T-1', status: 'Available' },
     { id: 'T-2', name: 'T-2', status: 'Available' },
@@ -46,7 +47,28 @@ export const TableProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  // 🔄 Escuchar cambios en las órdenes en tiempo real para actualizar mesas
+  // ➤ Inicialización de la colección "tables" en Firebase
+  // Se consulta la colección y si está vacía se crean las mesas por defecto.
+  useEffect(() => {
+    const initTables = async () => {
+      try {
+        const tablesCollection = collection(db, 'tables');
+        const snapshot = await getDocs(tablesCollection);
+        if (snapshot.empty) {
+          for (const table of initialTables) {
+            // Se crean los documentos usando el objeto (se asignará un id automático)
+            await addDoc(tablesCollection, { name: table.name, status: table.status });
+          }
+        }
+      } catch (error) {
+        console.error("Error inicializando las mesas:", error);
+      }
+    };
+    initTables();
+  }, []);
+
+  // ➤ Escuchar cambios en las órdenes en tiempo real para actualizar el estado de las mesas.
+  // Se marca la mesa como "Occupied" si existe alguna orden activa (estado distinto a "listo" o "entregado")
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
       const activeTables: Record<string, boolean> = {};
@@ -54,9 +76,8 @@ export const TableProvider = ({ children }: { children: ReactNode }) => {
       snapshot.forEach((doc) => {
         const order = doc.data();
         const tableId = order.table;
-        const status = order.orderStatus;
-
-        if (status !== 'Listo' && status !== 'Entregado') {
+        const status = order.orderStatus; // Se espera que los estados sean en minúsculas: "pendiente", "preparando", etc.
+        if (status !== 'listo' && status !== 'entregado') {
           activeTables[tableId] = true;
         }
       });

@@ -4,13 +4,22 @@ import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../utils/FireBaseConfig";
 import { useRouter } from "expo-router";
 import styles from "../../Styles/chef";
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from "../../context/AuthContext";
 
 export default function ChefScreen() {
   const [orders, setOrders] = useState<any[]>([]);
   const router = useRouter();
   const { userType, email } = useContext(AuthContext);
   const [username, setUsername] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Recuperar las órdenes desde Firestore y almacenar el id del documento
   useEffect(() => {
@@ -32,13 +41,13 @@ export default function ChefScreen() {
   }, []);
 
   useEffect(() => {
-        if (email) {
-          const user = email.split('@')[0];
-          setUsername(user);
-        }
-      }, [userType, email]);
+    if (email) {
+      const user = email.split('@')[0];
+      setUsername(user);
+    }
+  }, [userType, email]);
 
-  // Función para actualizar el estado de la orden completa
+  // Función para actualizar el estado de la orden
   const updateOrderStatus = async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
@@ -82,12 +91,32 @@ export default function ChefScreen() {
     }
   };
 
+  // Función para formatear la diferencia de tiempo en hh:mm:ss
+  const formatTimeDiff = (createdAt: any) => {
+    // Se asume que createdAt es un Timestamp de Firebase. Si no, se puede ajustar.
+    let startDate: Date;
+    if (createdAt?.toDate) {
+      startDate = createdAt.toDate();
+    } else if (createdAt?.seconds) {
+      startDate = new Date(createdAt.seconds * 1000);
+    } else {
+      startDate = new Date();
+    }
+    const diff = currentTime.getTime() - startDate.getTime();
+    const seconds = Math.floor((diff / 1000) % 60);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   // Renderizado de cada orden en la lista
   const renderOrder = ({ item }: { item: any }) => (
     <View style={styles.orderItem}>
       {/* Nombre de la mesa */}
       <Text style={styles.orderTitle}>Mesa: {item.table}</Text>
-      
+
       {/* Lista de platos */}
       <View style={styles.dishesList}>
         {item.items.map((dish: any, index: number) => (
@@ -113,9 +142,9 @@ export default function ChefScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* Tiempo transcurrido */}
+      {/* Tiempo transcurrido actualizado */}
       <Text style={styles.timeText}>
-        Tiempo transcurrido: {item.timeElapsed} (hh:mm:ss)
+        Tiempo transcurrido: {formatTimeDiff(item.createdAt)} (hh:mm:ss)
       </Text>
     </View>
   );
