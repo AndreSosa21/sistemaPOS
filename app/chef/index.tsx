@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../utils/FireBaseConfig";
 import { useRouter } from "expo-router";
 import styles from "../../Styles/chef";
+import { AuthContext } from '../../context/AuthContext';
 
 export default function ChefScreen() {
   const [orders, setOrders] = useState<any[]>([]);
   const router = useRouter();
+  const { userType, email } = useContext(AuthContext);
+  const [username, setUsername] = useState('');
 
   // Recuperar las órdenes desde Firestore y almacenar el id del documento
   useEffect(() => {
@@ -27,6 +30,13 @@ export default function ChefScreen() {
     // Limpiar el listener al desmontar el componente
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+        if (email) {
+          const user = email.split('@')[0];
+          setUsername(user);
+        }
+      }, [userType, email]);
 
   // Función para actualizar el estado de la orden completa
   const updateOrderStatus = async (orderId: string) => {
@@ -114,7 +124,7 @@ export default function ChefScreen() {
     <View style={{ flex: 1 }}>
       {/* Cabecera */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello! Chef</Text>
+        <Text style={styles.headerText}>Hello! {username} </Text>
         <TouchableOpacity onPress={() => router.push("/chef")}>
           <Image
             source={require("../../assets/images/campana.png")}

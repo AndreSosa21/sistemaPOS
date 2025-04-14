@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }: any) => {
       value={{
         user,
         userType,
+        email: user?.email || '',
         login,
         logout
       }}

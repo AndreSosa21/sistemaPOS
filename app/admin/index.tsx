@@ -1,10 +1,11 @@
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { CameraModal } from "../../components/CameraModal";
 import { useCrud } from "../../context/CrudContext";
 import styles from "../../Styles/admin";
 import { useRouter } from "expo-router";
 import Menu from "./menu";  // Importar componente de menú
+import { AuthContext } from '../../context/AuthContext';
 
 export default function AdminMenu() {
   const { products, addProduct, updateProduct, deleteProduct } = useCrud();
@@ -16,7 +17,9 @@ export default function AdminMenu() {
     description: "",
   });
   const [showCrud, setShowCrud] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);  // Nuevo estado para mostrar el menú
+  const [showMenu, setShowMenu] = useState(false); 
+  const { userType, email } = useContext(AuthContext);
+  const [username, setUsername] = useState(''); // Nuevo estado para mostrar el menú
   const router = useRouter();
 
   const handleMenuClick = () => {
@@ -40,12 +43,18 @@ export default function AdminMenu() {
       setShowCrud(true);
     }
   };
+  useEffect(() => {
+      if (email) {
+        const user = email.split('@')[0];
+        setUsername(user);
+      }
+    }, [userType, email]);
 
   return (
     <View style={{ flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello ! Admin</Text>
+        <Text style={styles.headerText}>Hello !{username} </Text>
         <TouchableOpacity onPress={() => router.push("/admin")}>
           <Image
             source={require("../../assets/images/campana.png")}

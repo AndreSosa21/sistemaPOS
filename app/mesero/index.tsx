@@ -17,12 +17,14 @@ import { useTable } from '../../context/TablesContext';
 
 
 
+
 const Mesero = () => {
-  const { userType } = useContext(AuthContext);
+  const { userType, email } = useContext(AuthContext);
   const [role, setRole] = useState('');
   const [showOrders, setOrders] = useState(false);
   const [showTable, setTable] = useState(false);
   const [showCart, setCart] = useState(false);
+  const [username, setUsername] = useState('');
   const router = useRouter();
   const { tables } = useTable(); // Obtenemos las mesas desde el contexto
   // Obtenemos la función para actualizar la mesa seleccionada
@@ -43,6 +45,14 @@ const Mesero = () => {
 
     requestPermission();
   }, []);
+
+  useEffect(() => {
+        if (email) {
+          const user = email.split('@')[0];
+          setUsername(user);
+        }
+      }, [userType, email]);
+  
 
   // --------------------------------
   // Lógica para escanear
@@ -80,7 +90,7 @@ const Mesero = () => {
       {/* Header */}
       <View style={meseroStyles.header}>
         <View>
-          <Text style={meseroStyles.text}>Hello! Andrea</Text>
+          <Text style={meseroStyles.text}>Hello! {username} </Text>
           <Text style={meseroStyles.roleText}>{role}</Text>
         </View>
         <Image
