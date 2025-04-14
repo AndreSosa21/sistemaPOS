@@ -6,15 +6,14 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Modal,
+  
 } from 'react-native';
 import { useCrud } from '../../context/CrudContext';
 import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
 import Toast from 'react-native-toast-message';
-import { Camera, CameraType, CameraView } from 'expo-camera';
-import { useRouter } from 'expo-router';
-import { CameraModal } from '../../components/CameraModal';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+
 
 const OrdersScreen = () => {
   const { products } = useCrud();
@@ -27,22 +26,20 @@ const OrdersScreen = () => {
     confirmOrder,
   } = useOrders();
   const router = useRouter();
+  
+  const { table } = useLocalSearchParams();
+  useEffect(() => {
+    if (table) {
+      setSelectedTable(String(table));
+    }
+  }, [table]);
+  
 
   const tables = ['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'];
-  const [hasPermission, setHasPermission] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [scanData, setScanData] = useState<string | null>(null);
-  const cameraRef = useRef(null);
+  
+  
 
-  useEffect(() => {
-    const requestPermission = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    requestPermission();
-  }, []);
-
+  
   const increaseQuantity = (item: any) => {
     const newCart = cart.map((cartItem: any) =>
       cartItem.id === item.id
@@ -173,13 +170,6 @@ const OrdersScreen = () => {
     });
   };
 
-  const handleScan = async (type: any, data: string) => {
-    if (data) {
-      setScanData(data);
-      router.push(`/mesero/TableOrdersScreen?table=${data}`);
-      setScanning(false);
-    }
-  };
 
   return (
     <ScrollView style={orderScreenStyles.container}>
@@ -231,29 +221,6 @@ const OrdersScreen = () => {
         >
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
-
-        {/* Botón para escanear código QR */}
-        <TouchableOpacity onPress={() => setScanning(true)} style={orderScreenStyles.scanButton}>
-          <Text style={orderScreenStyles.scanButtonText}>Escanear Código QR</Text>
-        </TouchableOpacity>
-
-        {/* Modal para escanear código QR */}
-        {scanning && hasPermission && (
-          <Modal transparent={true} visible={scanning}>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-              <View style={{ width: '100%', height: '100%' }}>
-                <CameraView
-                  style={orderScreenStyles.camera}
-                  ref={cameraRef}
-                  onBarcodeScanned={({ type, data }: { type: string; data: string }) => handleScan(type, data)}
-                />
-              </View>
-              <TouchableOpacity onPress={() => setScanning(false)} style={{ position: 'absolute', top: 50, right: 20 }}>
-                <Text style={{ color: 'white' }}>Cerrar</Text>
-              </TouchableOpacity>
-            </View>
-          </Modal>
-        )}
       </View>
 
       <Toast />
