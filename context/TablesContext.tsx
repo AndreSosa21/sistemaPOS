@@ -1,5 +1,12 @@
-// context/TableContext.tsx
-import React, { createContext, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import { db } from '../utils/FireBaseConfig';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export type TableStatus = 'Available' | 'Occupied';
 
@@ -19,7 +26,7 @@ const TableContext = createContext<TableContextProps>({
   updateTableStatus: () => {},
 });
 
-export const TableProvider = ({ children }: { children: React.ReactNode }) => {
+export const TableProvider = ({ children }: { children: ReactNode }) => {
   const initialTables: Table[] = [
     { id: 'T-1', name: 'T-1', status: 'Available' },
     { id: 'T-2', name: 'T-2', status: 'Available' },
@@ -32,12 +39,38 @@ export const TableProvider = ({ children }: { children: React.ReactNode }) => {
   const [tables, setTables] = useState<Table[]>(initialTables);
 
   const updateTableStatus = (tableId: string, status: TableStatus) => {
-    setTables(prevTables =>
-      prevTables.map(table =>
+    setTables((prevTables) =>
+      prevTables.map((table) =>
         table.id === tableId ? { ...table, status } : table
       )
     );
   };
+
+  // 🔄 Escuchar cambios en las órdenes en tiempo real para actualizar mesas
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const activeTables: Record<string, boolean> = {};
+
+      snapshot.forEach((doc) => {
+        const order = doc.data();
+        const tableId = order.table;
+        const status = order.orderStatus;
+
+        if (status !== 'Listo' && status !== 'Entregado') {
+          activeTables[tableId] = true;
+        }
+      });
+
+      setTables((prevTables) =>
+        prevTables.map((table) => ({
+          ...table,
+          status: activeTables[table.id] ? 'Occupied' : 'Available',
+        }))
+      );
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <TableContext.Provider value={{ tables, updateTableStatus }}>

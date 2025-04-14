@@ -12,6 +12,8 @@ import { AuthContext } from '../../context/AuthContext';
 import { meseroStyles } from '../../Styles/mesero/index';
 import { useRouter } from 'expo-router';
 import { Camera, CameraView , CameraType} from 'expo-camera';
+import { useTable } from '../../context/TablesContext';
+
 
 
 
@@ -22,6 +24,8 @@ const Mesero = () => {
   const [showTable, setTable] = useState(false);
   const [showCart, setCart] = useState(false);
   const router = useRouter();
+  const { tables } = useTable(); // Obtenemos las mesas desde el contexto
+  // Obtenemos la función para actualizar la mesa seleccionada
 
   // --------------------------------
   // 1. Estados para manejar la cámara
@@ -97,18 +101,23 @@ const Mesero = () => {
         </View>
       </View>
 
-      {/* Table grid */}
       <ScrollView contentContainerStyle={meseroStyles.tableGrid}>
-        {['T-1', 'T-2', 'T-3', 'T-4', 'T-5', 'T-6'].map((table) => (
-          <TouchableOpacity
-            key={table}
-            style={meseroStyles.table}
-            onPress={() => handleTablePress(table)}
+      {tables.map((table) => (
+        <TouchableOpacity
+            key={table.id}
+            style={[
+            meseroStyles.table,
+            {
+            backgroundColor: table.status === 'Occupied' ? '#BA3A3A' : '#409744',
+            },
+         ]}
+          onPress={() => handleTablePress(table.id)}
           >
-            <Text style={meseroStyles.tableText}>{table}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <Text style={meseroStyles.tableText}>{table.name}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
+
 
       {/* Footer */}
       <View style={meseroStyles.footer}>
