@@ -11,6 +11,7 @@ import {
 import { useCrud } from '../../context/CrudContext';
 import { useOrders } from '../../context/OrdersContext';
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
+import { menuStyles } from '../../Styles/mesero/index';
 import Toast from 'react-native-toast-message';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -173,23 +174,43 @@ const OrdersScreen = () => {
 
   return (
     <ScrollView style={orderScreenStyles.container}>
+      {/* Encabezado */}
       <View style={orderScreenStyles.header}>
         <Text style={orderScreenStyles.headerText}>Menú del Restaurante</Text>
       </View>
+  
+     {/* Sección de productos con diseño tipo tarjetas modernas */}
+<View style={{ marginBottom: 24 }}>
+  {products.map((item) => (
+    <View key={item.id} style={menuStyles.menuCard}>
+      <Image source={{ uri: item.imageUrl }} style={menuStyles.menuImage} />
 
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id?.toString() || ''}
-        renderItem={renderProduct}
-        contentContainerStyle={orderScreenStyles.productList}
-        scrollEnabled={false}
-      />
+      {/* Botón "Añadir" flotante en la esquina superior derecha */}
+      <TouchableOpacity
+        style={menuStyles.addButtonFloating}
+        onPress={() => handleAddToCart(item)}
+      >
+        <Text style={menuStyles.addButtonTextFloating}>Añadir</Text>
+      </TouchableOpacity>
 
+      {/* Contenido inferior con fondo rojo */}
+      <View style={menuStyles.menuInfo}>
+        <Text style={menuStyles.menuTitle}>{item.title} 🔥</Text>
+        <Text style={menuStyles.menuDescription}>{item.description}</Text>
+        <Text style={menuStyles.itemPrice}>${parseFloat(item.price).toFixed(2)}</Text>
+      </View>
+    </View>
+  ))}
+</View>
+
+  
+      {/* Línea divisora */}
       <View style={orderScreenStyles.divider} />
-
+  
+      {/* Sección de carrito */}
       <View style={orderScreenStyles.orderSection}>
         <Text style={orderScreenStyles.sectionTitle}>Carrito</Text>
-
+  
         {cart.length === 0 ? (
           <Text style={orderScreenStyles.emptyCartText}>
             No hay productos en el carrito
@@ -201,20 +222,20 @@ const OrdersScreen = () => {
             renderItem={renderCartItem}
           />
         )}
-
+  
         <Text style={orderScreenStyles.sectionTitle}>Seleccione Mesa</Text>
         <View style={orderScreenStyles.tableGrid}>
           {tables.map((table) => renderTable(table))}
         </View>
-
+  
         <Text style={orderScreenStyles.selectedTableText}>
           Mesa Seleccionada: {selectedTable || 'Ninguna'}
         </Text>
-
+  
         <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>
           Total: ${total.toFixed(2)}
         </Text>
-
+  
         <TouchableOpacity
           style={orderScreenStyles.confirmButton}
           onPress={handleConfirm}
@@ -222,10 +243,11 @@ const OrdersScreen = () => {
           <Text style={orderScreenStyles.confirmButtonText}>Confirmar Orden</Text>
         </TouchableOpacity>
       </View>
-
+  
       <Toast />
     </ScrollView>
   );
+  
 };
 
 export default OrdersScreen;

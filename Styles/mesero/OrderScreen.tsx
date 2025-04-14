@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 const Colors = {
-  primary: '#C94949',         // Rojo (cabecera, botones)
+  primary: '#DE3C4B',         // Rojo (cabecera, botones)
   secondary: '#63A46C',       // Verde (mesa seleccionada)
   background: '#FDF8F7',      // Fondo crema
   textDark: '#000000',
@@ -15,6 +15,7 @@ export const orderScreenStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,
+    paddingTop: 40,
     paddingBottom: 80,
   },
   header: {
@@ -22,7 +23,7 @@ export const orderScreenStyles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 16,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 30,
   },
   headerText: {
     color: Colors.textLight,

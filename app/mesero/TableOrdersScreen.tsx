@@ -58,7 +58,7 @@ const TableOrdersScreen = () => {
 
   return (
     <View style={tableOrdersStyles.container}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 80, textAlign: 'center' }}>
         Órdenes de la mesa {table}
       </Text>
 
@@ -104,20 +104,7 @@ const TableOrdersScreen = () => {
 
       <TouchableOpacity onPress={() => router.back()} style={tableOrdersStyles.backButton}>
         <Text style={tableOrdersStyles.backButtonText}>Volver</Text>
-      </TouchableOpacity>
-
-      {/* Mostrar el estado de la mesa con un color */}
-      <View
-        style={{
-          marginTop: 20,
-          padding: 10,
-          backgroundColor: tableData?.status === 'Available' ? 'green' : 'red',
-        }}
-      >
-        <Text style={{ color: 'white' }}>
-          Mesa {tableData?.name} está {tableData?.status}
-        </Text>
-      </View>
+      </TouchableOpacity>  
     </View>
   );
 };

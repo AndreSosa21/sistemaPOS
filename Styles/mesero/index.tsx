@@ -103,7 +103,6 @@ export const meseroStyles = StyleSheet.create({
   },
 });
 
-// Nuevos estilos para la pantalla de menú
 export const menuStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -114,46 +113,103 @@ export const menuStyles = StyleSheet.create({
   item: {
     backgroundColor: '#fff',
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 16,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 2,
-    flexDirection: 'row', // Usamos fila para mostrar la imagen y el texto horizontalmente
-    alignItems: 'center', // Alinea los elementos verticalmente en el centro
-  },
-  itemText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textDark,
-    marginBottom: 6,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 4,
+    alignItems: 'center',
   },
   itemImage: {
-    width: 50,  // Tamaño de la imagen
-    height: 50, // Tamaño de la imagen
-    borderRadius: 8, // Bordes redondeados
-    marginRight: 12,  // Espacio entre la imagen y el texto
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginBottom: 12,
+    resizeMode: 'cover',
+  },
+  itemText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.textDark,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  itemPrice: {
+    fontSize: 16,
+    color: Colors.background, // Color rojo para resaltar precio
+    marginBottom: 4,
+  },
+  itemDescription: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   addButton: {
-    color: Colors.primary,
+    backgroundColor: Colors.primary, // Rojo
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: Colors.textLight,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  menuCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 4,
+    position: 'relative',
+  },
+  menuImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  addButtonFloating: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: Colors.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    zIndex: 2,
+  },
+  addButtonTextFloating: {
+    color: Colors.textLight,
     fontWeight: 'bold',
     fontSize: 14,
   },
-  cartButton: {
+  menuInfo: {
     backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 20,
+    padding: 10,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    height: 80,
   },
-  cartButtonText: {
+  menuTitle: {
     color: Colors.textLight,
-    textAlign: 'center',
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
+    marginBottom: 4,
   },
+  menuDescription: {
+    color: Colors.textLight,
+    fontSize: 14,
+  },
+  
 });
+
 
 export const cartStyles = StyleSheet.create({
   container: {
@@ -201,7 +257,10 @@ export const tableOrdersStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding: 20,
+    padding: 10,
+    paddingTop: 80, // espacio para el footer fijo
+    alignContent: 'center',
+    justifyContent: 'center',
   },
   orderContainer: {
     backgroundColor: '#fff',
