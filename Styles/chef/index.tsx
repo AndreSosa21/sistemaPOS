@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   filtersContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginVertical: 10,
+    marginVertical: 5,
     gap: 10,
   },
   filterButton: {
@@ -86,6 +86,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: Colors.tableInactive,
+    marginVertical: 5,
+    height: 40,
   },
   filterButtonText: {
     fontSize: 14,

@@ -26,10 +26,11 @@ export const orderScreenStyles = StyleSheet.create({
     marginBottom: 30,
   },
   headerText: {
-    color: Colors.textLight,
+    color: Colors.primary,
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
+    paddingBottom: 30,
   },
   productList: {
     paddingBottom: 20,

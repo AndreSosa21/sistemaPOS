@@ -153,6 +153,7 @@ export const cajeroStyles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: Colors.tableInactive,
+    height: 40,
   },
   filterButtonText: {
     color: Colors.textDark,
