@@ -2,19 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { db } from '../../utils/FireBaseConfig';
-import { collection, query, where, onSnapshot } from 'firebase/firestore'; // Importamos onSnapshot
-import { useTable } from '../../context/TablesContext'; // Importamos el useTable hook
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useTable } from '../../context/TablesContext';
 import { tableOrdersStyles } from '../../Styles/mesero/index';
 
 const TableOrdersScreen = () => {
   const router = useRouter();
   const { table } = useLocalSearchParams();
-  const { tables } = useTable(); // Obtenemos las mesas desde el contexto
+  const { tables } = useTable();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Función para escuchar cambios en tiempo real
     const q = query(collection(db, 'orders'), where('table', '==', table));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -26,29 +25,28 @@ const TableOrdersScreen = () => {
       setLoading(false);
     });
 
-    // Limpiar el listener al desmontar el componente
     return () => unsubscribe();
   }, [table]);
 
-  // Buscar el estado de la mesa
   const tableData = tables.find((t) => t.id === table);
 
-  // Agrupar productos con cantidades y total por producto
   const groupItems = (items: any[]) => {
     const grouped: { [title: string]: any } = {};
 
     items.forEach((item) => {
       const key = item.title;
       const price = parseFloat(item.price);
+      const quantity = item.quantity || 1;
+
       if (grouped[key]) {
-        grouped[key].quantity += 1;
-        grouped[key].totalPrice += price;
+        grouped[key].quantity += quantity;
+        grouped[key].totalPrice += price * quantity;
       } else {
         grouped[key] = {
           title: item.title,
           description: item.description,
-          quantity: 1,
-          totalPrice: price,
+          quantity: quantity,
+          totalPrice: price * quantity,
         };
       }
     });
@@ -104,7 +102,7 @@ const TableOrdersScreen = () => {
 
       <TouchableOpacity onPress={() => router.back()} style={tableOrdersStyles.backButton}>
         <Text style={tableOrdersStyles.backButtonText}>Volver</Text>
-      </TouchableOpacity>  
+      </TouchableOpacity>
     </View>
   );
 };

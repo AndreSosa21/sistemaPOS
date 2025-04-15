@@ -109,9 +109,10 @@ const ChefScreen = () => {
   };
 
   // Filtrar según el estado seleccionado
-  const filteredOrders = filter === "todos"
-    ? orders
-    : orders.filter((o) => o.orderStatus === filter);
+  const filteredOrders =
+    filter === "todos"
+      ? orders
+      : orders.filter((o) => o.orderStatus === filter);
 
   // Renderizado de cada orden con botones de estado y tiempo transcurrido
   const renderOrder = ({ item }: { item: any }) => (
@@ -120,7 +121,7 @@ const ChefScreen = () => {
       <View style={styles.dishesList}>
         {item.items.map((dish: any, index: number) => (
           <Text key={index} style={styles.dishText}>
-            {dish.title}
+            {dish.quantity} x {dish.title}
           </Text>
         ))}
       </View>
