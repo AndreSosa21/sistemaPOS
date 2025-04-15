@@ -15,10 +15,10 @@ project/
 │   ├── index.tsx          # Pantalla de splash (ActivityIndicator)
 │   ├── login.tsx          # Pantalla de inicio de sesión
 │   ├── register.tsx       # Pantalla de registro
-│   ├── mesero.tsx         # Pantalla para el rol de mesero
-│   ├── chef.tsx           # Pantalla para el rol de chef
-│   ├── cajero.tsx         # Pantalla para el rol de cajero
-│   └── admin.tsx          # Pantalla para el rol de administrador
+│   ├── mesero carpeta     # Pantalla para el rol de mesero
+│   ├── chef crpeta        # Pantalla para el rol de chef
+│   ├── cajero carpeta     # Pantalla para el rol de cajero
+│   └── admin carpeta      # Pantalla para el rol de administrador
 ├── context/               # Contextos de la aplicación
 │   ├── AuthContext.tsx    # Manejo de autenticación y roles
 │   ├── CrudContext.tsx    # Operaciones CRUD para productos
