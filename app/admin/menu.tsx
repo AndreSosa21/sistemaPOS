@@ -1,39 +1,54 @@
+// Importación de React y hooks necesarios para el manejo del estado en el componente
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, FlatList, ScrollView } from "react-native";
+// Importación del Modal para la cámara
 import { CameraModal } from "../../components/CameraModal";
+// Uso del contexto de CRUD para productos
 import { useCrud } from "../../context/CrudContext";
+// Estilos específicos para el menú del administrador
 import menuStyles from "../../Styles/admin/menu";
 
+// Componente Menu: interfaz para agregar y gestionar productos
 const Menu = ({ handleNavigation }: any) => {
+  // Obtención de funciones CRUD desde el contexto
   const { products, addProduct, updateProduct, deleteProduct } = useCrud();
+  // Estado para almacenar la imagen seleccionada
   const [image, setImage] = useState<any>(undefined);
+  // Estado para el nuevo producto con sus propiedades
   const [newProduct, setNewProduct] = useState({
     title: "",
     price: "",
     description: "",
   });
+  // Estado para controlar la visibilidad del Modal de la cámara
   const [isVisible, setVisible] = useState(false);
 
+  // Función para agregar un nuevo producto utilizando la función del contexto
   const handleAddProduct = () => {
     addProduct(newProduct, image);
+    // Se limpian los valores del formulario tras agregar el producto
     setNewProduct({ title: "", price: "", description: "" });
     setImage(undefined);
   };
 
+  // Función para actualizar un producto existente
   const handleUpdateProduct = (id: string | undefined) => {
     if (id) {
       updateProduct(id, newProduct, image);
+      // Se reinician los valores después de la actualización
       setNewProduct({ title: "", price: "", description: "" });
       setImage(undefined);
     }
   };
 
+  // Función para eliminar un producto
   const handleDeleteProduct = (id: string | undefined) => {
     if (id) {
       deleteProduct(id);
     }
   };
 
+  // Función para cerrar el Modal de la cámara
   const closeModal = () => {
     setVisible(false);
   };
@@ -42,7 +57,7 @@ const Menu = ({ handleNavigation }: any) => {
     <ScrollView contentContainerStyle={menuStyles.scrollContainer}>
       <Text style={menuStyles.headerText}>Add New Product</Text>
 
-      {/* Form to add product */}
+      {/* Formulario para agregar un producto */}
       <View style={menuStyles.formContainer}>
         <TextInput
           style={menuStyles.input}
@@ -66,6 +81,7 @@ const Menu = ({ handleNavigation }: any) => {
           }
         />
 
+        {/* Visualización previa de la imagen seleccionada */}
         {image ? (
           <View style={menuStyles.imagePreview}>
             <Image source={{ uri: image.uri }} style={menuStyles.image} />
@@ -79,15 +95,16 @@ const Menu = ({ handleNavigation }: any) => {
           </TouchableOpacity>
         )}
 
+        {/* Botón para agregar el producto */}
         <TouchableOpacity style={menuStyles.button} onPress={handleAddProduct}>
           <Text style={menuStyles.buttonText}>Add Product</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Modal for camera */}
+      {/* Modal para la cámara */}
       <CameraModal isVisible={isVisible} setImage={setImage} closeModal={closeModal} />
 
-      {/* Display the existing products */}
+      {/* Listado de productos existentes */}
       <Text style={menuStyles.headerText}>Existing Products</Text>
       <FlatList
         data={products}

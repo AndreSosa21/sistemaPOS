@@ -1,4 +1,4 @@
-// app/register.tsx
+// Importación de React, hooks, componentes y utilidades necesarias para el registro de usuario
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Image } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -9,16 +9,20 @@ import { auth, db } from '../utils/FireBaseConfig';
 import { doc, setDoc, getDocs, query, collection, where } from 'firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
 
+// Componente de Registro para crear nuevos usuarios
 const Register = () => {
+  // Estados locales para email, contraseña, tipo de usuario, visibilidad del modal y mensaje de error
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState('');
   const [modalVisible, setModalVisible] = useState(false);  // Estado para controlar el Modal
   const [errorMessage, setErrorMessage] = useState('');  // Estado para el mensaje de error
+  // Obtención de la función register del contexto de autenticación
   const { register } = useContext(AuthContext);
+  // Hook para navegación
   const router = useRouter();
 
-  // Validaciones de los campos
+  // Función para validar los campos del formulario
   const validateFields = () => {
     if (!email || !password || !userType) {
       setErrorMessage('Por favor, complete todos los campos.');
@@ -26,6 +30,7 @@ const Register = () => {
       return false;
     }
 
+    // Validación del formato del email con expresión regular
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
       setErrorMessage('Por favor, ingrese un email válido.');
@@ -33,6 +38,7 @@ const Register = () => {
       return false;
     }
 
+    // Verifica que la contraseña tenga al menos 6 caracteres
     if (password.length < 6) {
       setErrorMessage('La contraseña debe tener al menos 6 caracteres.');
       setModalVisible(true);
@@ -42,19 +48,21 @@ const Register = () => {
     return true;
   };
 
+  // Función para manejar el registro del usuario
   const handleRegister = async () => {
-    // Verificar validaciones antes de proceder
+    // Verificar las validaciones antes de proceder
     if (!validateFields()) {
       return;
     }
 
+    // Controlar que sólo exista un administrador en la base de datos
     if (userType === 'admin') {
-      // Verifica si ya hay un admin en la base de datos
+      // Consulta para verificar si ya existe un admin registrado
       const q = query(collection(db, "users"), where("userType", "==", "admin"));
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
-        // Si ya existe un admin, muestra una alerta con el Modal y no guarda el nuevo admin
+        // Si ya existe un admin, se muestra un mensaje de error y se evita crear un nuevo admin
         setErrorMessage('Ya existe un administrador en la base de datos. No se puede registrar otro.');
         setModalVisible(true);  // Muestra el Modal
         return;
@@ -62,19 +70,20 @@ const Register = () => {
     }
 
     try {
-      // Crea el usuario en Firebase Authentication
+      // Crea el usuario en Firebase Authentication con email y password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Guarda el nuevo usuario en la base de datos
+      // Guarda la información del usuario en Firestore, en la colección 'users'
       await setDoc(doc(db, 'users', user.uid), {
         email: email,
         userType: userType,
       });
 
-      // Redirige a la página de login
+      // Redirige al usuario a la página de login luego del registro exitoso
       router.push('/login');
     } catch (error) {
+      // Muestra un mensaje de error en caso de falla en el registro
       setErrorMessage('Hubo un problema al registrar el usuario');
       setModalVisible(true);  // Muestra el Modal con el mensaje de error
       console.error('Error al registrar:', error);
@@ -82,10 +91,11 @@ const Register = () => {
   };
 
   return (
+    // Contenedor principal del registro utilizando estilos importados
     <View style={registerStyles.container}>
       <Text style={registerStyles.header}>Welcome to POSitive</Text>
 
-      {/* Email Field */}
+      {/* Campo de entrada para el Email */}
       <View style={registerStyles.inputContainer}>
         <Image source={require('../assets/images/persona.png')} style={registerStyles.icon} />
         <TextInput
@@ -98,7 +108,7 @@ const Register = () => {
         />
       </View>
 
-      {/* Password Field */}
+      {/* Campo de entrada para la Contraseña */}
       <View style={registerStyles.inputContainer}>
         <Image source={require('../assets/images/candado.png')} style={registerStyles.icon} />
         <TextInput
@@ -110,7 +120,7 @@ const Register = () => {
         />
       </View>
 
-      {/* Role Field */}
+      {/* Selector para elegir el rol del usuario */}
       <View style={registerStyles.inputContainer}>
         <Image source={require('../assets/images/rol.png')} style={registerStyles.icon} />
         <Picker
@@ -127,12 +137,12 @@ const Register = () => {
         </Picker>
       </View>
 
-      {/* Register Button */}
+      {/* Botón de registro que llama a handleRegister */}
       <TouchableOpacity style={registerStyles.button} onPress={handleRegister}>
         <Text style={registerStyles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      {/* Redirect to Login */}
+      {/* Enlace para redirigir a la pantalla de Login */}
       <View style={registerStyles.loginLinkContainer}>
         <Text style={registerStyles.linkText}>Already have an account? </Text>
         <TouchableOpacity onPress={() => router.push('/login')}>
@@ -140,27 +150,25 @@ const Register = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal de alerta */}
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalVisible}
-  onRequestClose={() => setModalVisible(false)}
->
-  <View style={registerStyles.modalBackground}> {/* Fondo transparente */}
-    <View style={registerStyles.modalView}> {/* Contenido del modal */}
-      <Text style={registerStyles.modalText}>{errorMessage}</Text>
-      <TouchableOpacity
-        style={registerStyles.button}
-        onPress={() => setModalVisible(false)}  // Cierra el modal
+      {/* Modal de alerta para mostrar mensajes de error */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <Text style={registerStyles.buttonText}>Volver</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
-
-
+        <View style={registerStyles.modalBackground}> {/* Fondo transparente */}
+          <View style={registerStyles.modalView}> {/* Contenido del modal */}
+            <Text style={registerStyles.modalText}>{errorMessage}</Text>
+            <TouchableOpacity
+              style={registerStyles.button}
+              onPress={() => setModalVisible(false)}  // Cierra el modal
+            >
+              <Text style={registerStyles.buttonText}>Volver</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

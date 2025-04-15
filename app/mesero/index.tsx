@@ -1,3 +1,10 @@
+// ===============================================================
+// Archivo: mesero/index.tsx
+// Propósito: Pantalla principal para el Mesero, que muestra el saludo,
+// el estado de las mesas (disponible/ocupada), y permite la navegación
+// a otras secciones. Incluye funcionalidad de escaneo QR para acceder a pedidos.
+// ===============================================================
+
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import {
   View,
@@ -7,25 +14,33 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+// Contexto de autenticación para datos de usuario
 import { AuthContext } from '../../context/AuthContext';
+// Estilos específicos para la pantalla del Mesero
 import { meseroStyles } from '../../Styles/mesero/index';
+// Hook para navegación con Expo Router
 import { useRouter } from 'expo-router';
+// Se importan componentes y tipos de cámara de Expo
 import { Camera, CameraView, CameraType } from 'expo-camera';
+// Contexto para obtener datos de mesas
 import { useTable } from '../../context/TablesContext';
 
 const Mesero = () => {
+  // Extrae datos del usuario desde AuthContext
   const { userType, email } = useContext(AuthContext);
   const [role, setRole] = useState('');
   const [username, setUsername] = useState('');
+  // Estado para controlar el escaneo QR
   const [scanning, setScanning] = useState<boolean>(false);
   const router = useRouter();
-  const { tables } = useTable(); // Se obtienen las mesas desde el contexto
+  // Se obtienen las mesas disponibles desde el contexto
+  const { tables } = useTable();
 
-  // Estados para manejar la cámara
+  // Estados para manejar permisos y referencia de la cámara
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const cameraRef = useRef<CameraView | null>(null);
 
-  // Pedir permiso de cámara al cargar
+  // Solicita permiso para usar la cámara al montar el componente
   useEffect(() => {
     const requestPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -34,7 +49,7 @@ const Mesero = () => {
     requestPermission();
   }, []);
 
-  // Setear nombre de usuario
+  // Extraer el nombre de usuario a partir del email
   useEffect(() => {
     if (email) {
       const user = email.split('@')[0];
@@ -42,14 +57,14 @@ const Mesero = () => {
     }
   }, [userType, email]);
 
-  // Actualización del rol
+  // Actualiza el rol en caso de ser mesero
   useEffect(() => {
     if (userType === 'mesero') {
       setRole('Mesero');
     }
   }, [userType]);
 
-  // Función para escanear QR y redirigir según la mesa obtenida
+  // Función para manejar el escaneo del código QR, redirige a la pantalla de pedidos con la mesa
   const handleScan = async ({ type, data }: { type: string; data: string }) => {
     if (data) {
       setScanning(false);
@@ -57,10 +72,12 @@ const Mesero = () => {
     }
   };
 
+  // Función para manejar el toque sobre una mesa; redirige a la pantalla de pedidos de la mesa
   const handleTablePress = (tableId: string) => {
     router.push(`/mesero/TableOrdersScreen?table=${tableId}`);
   };
 
+  // Función para la navegación del footer (pedidos, perfil, logout)
   const handleNavigation = (screen: string) => {
     if (screen === 'orders') {
       router.push('/mesero/OrdersScreen');
@@ -73,7 +90,7 @@ const Mesero = () => {
 
   return (
     <View style={meseroStyles.container}>
-      {/* Header */}
+      {/* HEADER: saludo y rol */}
       <View style={meseroStyles.header}>
         <View>
           <Text style={meseroStyles.text}>Hello! {username}</Text>
@@ -85,7 +102,7 @@ const Mesero = () => {
         />
       </View>
 
-      {/* Leyenda de estado (disponible y ocupada) */}
+      {/* Indicadores de estado de las mesas */}
       <View style={meseroStyles.statusIndicators}>
         <View style={meseroStyles.dotLabel}>
           <View style={[meseroStyles.dot, { backgroundColor: '#409744' }]} />
@@ -97,7 +114,7 @@ const Mesero = () => {
         </View>
       </View>
 
-      {/* Grid de mesas */}
+      {/* Grid de mesas: muestra cada mesa con color de fondo según su estado */}
       <ScrollView contentContainerStyle={meseroStyles.tableGrid}>
         {tables.map((table) => (
           <TouchableOpacity
@@ -116,7 +133,7 @@ const Mesero = () => {
         ))}
       </ScrollView>
 
-      {/* Footer de navegación */}
+      {/* FOOTER: navegación entre pantallas */}
       <View style={meseroStyles.footer}>
         <TouchableOpacity onPress={() => router.push('/mesero')}>
           <Image
@@ -152,7 +169,7 @@ const Mesero = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal para cámara (escaneo QR) */}
+      {/* Modal para escanear QR, visible cuando 'scanning' es true */}
       {scanning && (
         <Modal transparent={true} visible={scanning}>
           <View

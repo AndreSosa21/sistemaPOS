@@ -1,10 +1,16 @@
-// context/CrudContext.tsx
+// ===============================================================
+// Archivo: context/CrudContext.tsx
+// Propósito: Proveer funciones CRUD para la gestión de productos en la base
+// de datos, incluyendo la adición, actualización y eliminación de productos,
+// junto con la carga de los productos existentes.
+// ===============================================================
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { db, storage } from "../utils/FireBaseConfig"; // Asegúrate de tener configurado Firebase
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, updateDoc, doc, deleteDoc, getDocs } from "firebase/firestore";
 
+// Define el tipo de producto
 interface Product {
   id?: string;  // id es opcional al agregar el producto
   title: string;
@@ -13,6 +19,7 @@ interface Product {
   imageUrl?: string;
 }
 
+// Define el tipo del contexto CRUD
 interface CrudContextType {
   products: Product[];
   addProduct: (product: Product, image: any) => void;
@@ -20,11 +27,14 @@ interface CrudContextType {
   deleteProduct: (productId: string) => void;
 }
 
+// Se crea el contexto CRUD
 const CrudContext = createContext<CrudContextType | undefined>(undefined);
 
 export const CrudProvider = ({ children }: any) => {
+  // Estado para almacenar la lista de productos
   const [products, setProducts] = useState<Product[]>([]);
 
+  // useEffect para cargar los productos al montar el componente
   useEffect(() => {
     const fetchProducts = async () => {
       const querySnapshot = await getDocs(collection(db, "products"));
@@ -37,6 +47,7 @@ export const CrudProvider = ({ children }: any) => {
     fetchProducts();
   }, []);
 
+  // Función para agregar un producto, subiendo la imagen si se proporciona
   const addProduct = async (product: Product, image: any) => {
     try {
       let imageUrl = "";
@@ -86,6 +97,7 @@ export const CrudProvider = ({ children }: any) => {
     }
   };
 
+  // Función para actualizar un producto; si se proporciona una imagen, se vuelve a subir
   const updateProduct = async (productId: string, updatedProduct: Product, image: any) => {
     try {
       let imageUrl = updatedProduct.imageUrl;
@@ -132,6 +144,7 @@ export const CrudProvider = ({ children }: any) => {
     }
   };
 
+  // Función para eliminar un producto
   const deleteProduct = async (productId: string) => {
     try {
       await deleteDoc(doc(db, "products", productId));

@@ -1,3 +1,9 @@
+// ===============================================================
+// Archivo: context/AccountContext.tsx
+// Propósito: Proveer funciones relacionadas con las cuentas, en particular
+// la gestión del pago de órdenes (marcar como pagado, mover a inventary y liberar mesas).
+// ===============================================================
+
 import React, { createContext, useContext } from 'react';
 import { db } from '../utils/FireBaseConfig';
 import {
@@ -9,11 +15,14 @@ import {
   collection,
   getDocs,
 } from 'firebase/firestore';
+// Se importa useTable para actualizar el estado de las mesas
 import { useTable } from './TablesContext';
 
+// Se crea el contexto para la cuenta
 const AccountContext = createContext<any>(null);
 
 export const AccountProvider = ({ children }: any) => {
+  // Se obtiene la función updateTableStatus desde el contexto de mesas
   const { updateTableStatus } = useTable();
 
   /**
@@ -67,6 +76,7 @@ export const AccountProvider = ({ children }: any) => {
     }
   };
 
+  // Función para obtener todas las órdenes almacenadas en "inventary"
   const getInventoryOrders = async () => {
     try {
       const snapshot = await getDocs(collection(db, 'inventary'));

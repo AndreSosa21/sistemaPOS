@@ -1,3 +1,10 @@
+// ===============================================================
+// Archivo: mesero/OrderScreen.tsx
+// Propósito: Pantalla para que el Mesero gestione el menú y el carrito.
+// Permite agregar productos al carrito, modificar cantidades,
+// seleccionar mesa, y confirmar la orden. Incluye integración con escaneo QR.
+// ===============================================================
+
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
   View,
@@ -8,18 +15,29 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+// Hook para operaciones CRUD de productos
 import { useCrud } from '../../context/CrudContext';
+// Hook para gestionar el carrito y órdenes
 import { useOrders } from '../../context/OrdersContext';
+// Hook para obtener datos de mesas
 import { useTable } from '../../context/TablesContext';
+// Estilos específicos para la pantalla de pedidos
 import { orderScreenStyles } from '../../Styles/mesero/OrderScreen';
+// Estilos adicionales para el menú y la interfaz de mesero
 import { menuStyles, meseroStyles } from '../../Styles/mesero/index';
+// Componente para mostrar notificaciones (Toast)
 import Toast from 'react-native-toast-message';
+// Hooks de Expo Router para navegación y obtención de parámetros locales
 import { useRouter, useLocalSearchParams } from 'expo-router';
+// Contexto de autenticación para datos del usuario
 import { AuthContext } from '../../context/AuthContext';
+// Importa componentes y funciones de cámara
 import { Camera, CameraView } from 'expo-camera';
 
 const OrdersScreen = () => {
+  // Se obtienen los productos disponibles desde el contexto CRUD
   const { products } = useCrud();
+  // Se extraen funciones y estados relativos al carrito y órdenes
   const {
     cart,
     addToCart,
@@ -28,20 +46,23 @@ const OrdersScreen = () => {
     setSelectedTable,
     confirmOrder,
   } = useOrders();
+  // Se obtienen las mesas disponibles desde el contexto de mesas
   const { tables } = useTable();
+  // Datos del usuario desde AuthContext
   const { userType, email } = useContext(AuthContext);
   const router = useRouter();
 
+  // Estados para el nombre de usuario y rol
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('');
 
-  // Permisos y estado para escanear QR (tercera opción del footer)
+  // Estados y referencia para el escaneo de QR
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [scanning, setScanning] = useState<boolean>(false);
   const cameraRef = useRef<CameraView | null>(null);
 
+  // Solicita permisos de cámara al iniciar el componente
   useEffect(() => {
-    // Solicitar permiso para cámara al iniciar
     const requestPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
@@ -49,7 +70,7 @@ const OrdersScreen = () => {
     requestPermission();
   }, []);
 
-  // Establecer nombre de usuario y rol para el header
+  // Establece nombre de usuario y rol en el header
   useEffect(() => {
     if (email) {
       setUsername(email.split('@')[0]);
@@ -61,7 +82,7 @@ const OrdersScreen = () => {
     }
   }, [email, userType]);
 
-  // Obtener el parámetro de mesa (si viene por URL)
+  // Obtiene parámetro "table" desde la URL y lo asigna como mesa seleccionada
   const { table } = useLocalSearchParams();
   useEffect(() => {
     if (table) {
@@ -69,7 +90,9 @@ const OrdersScreen = () => {
     }
   }, [table]);
 
-  // Funciones de manejo del carrito
+  // Funciones para manejar el carrito
+
+  // Incrementa la cantidad de un producto si ya existe en el carrito
   const increaseQuantity = (item: any) => {
     const newCart = cart.map((cartItem: any) =>
       cartItem.id === item.id
@@ -79,6 +102,7 @@ const OrdersScreen = () => {
     setCart(newCart);
   };
 
+  // Disminuye la cantidad de un producto o lo remueve si la cantidad es 1
   const decreaseQuantity = (item: any) => {
     const newCart = cart
       .map((cartItem: any) =>
@@ -90,11 +114,13 @@ const OrdersScreen = () => {
     setCart(newCart);
   };
 
+  // Remueve un producto del carrito
   const handleRemoveFromCart = (item: any) => {
     const updatedCart = cart.filter((cartItem: any) => cartItem.id !== item.id);
     setCart(updatedCart);
   };
 
+  // Agrega un producto al carrito; si ya existe, incrementa la cantidad
   const handleAddToCart = (product: any) => {
     const exists = cart.find((item: any) => item.id === product.id);
     if (exists) {
@@ -102,6 +128,7 @@ const OrdersScreen = () => {
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+    // Muestra una notificación de éxito
     Toast.show({
       type: 'success',
       text1: 'Producto añadido al carrito',
@@ -109,6 +136,7 @@ const OrdersScreen = () => {
     });
   };
 
+  // Renderiza la información de un producto en el menú
   const renderProduct = ({ item }: { item: any }) => {
     const itemInCart = cart.find((cartItem: any) => cartItem.id === item.id);
     const quantity = itemInCart?.quantity || 0;
@@ -135,6 +163,7 @@ const OrdersScreen = () => {
     );
   };
 
+  // Renderiza un producto dentro del carrito, con controles para modificar cantidad
   const renderCartItem = ({ item }: { item: any }) => (
     <View style={orderScreenStyles.cartItem}>
       <Text style={orderScreenStyles.cartItemText}>
@@ -154,7 +183,7 @@ const OrdersScreen = () => {
     </View>
   );
 
-  // Renderizado del botón para cada mesa, obtenido del contexto de mesas
+  // Renderiza los botones para seleccionar mesa, obtenidos del contexto de mesas
   const renderTable = (tableItem: { id: string; name: string; status: string }) => (
     <TouchableOpacity
       key={tableItem.id}
@@ -171,13 +200,14 @@ const OrdersScreen = () => {
     </TouchableOpacity>
   );
 
-  // Cálculo total del carrito
+  // Calcula el total del carrito sumando el precio de cada ítem multiplicado por su cantidad
   const total = cart.reduce(
     (sum: number, item: { quantity: number; price: string }) =>
       sum + (item.quantity || 1) * parseFloat(item.price),
     0
   );
 
+  // Maneja la confirmación de la orden, mostrando notificaciones en caso de error o éxito
   const handleConfirm = async () => {
     if (!selectedTable) {
       Toast.show({
@@ -202,7 +232,7 @@ const OrdersScreen = () => {
     });
   };
 
-  // Lógica para el escaneo de QR
+  // Función para manejar el escaneo de código QR y redirigir a la pantalla de pedidos con la mesa
   const handleScan = async ({ type, data }: { type: string; data: string }) => {
     if (data) {
       setScanning(false);
@@ -212,7 +242,7 @@ const OrdersScreen = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Header idéntico al index de mesero */}
+      {/* HEADER: saludo, rol y notificación */}
       <View style={meseroStyles.header}>
         <View>
           <Text style={meseroStyles.text}>Hello! {username}</Text>
@@ -224,7 +254,7 @@ const OrdersScreen = () => {
         />
       </View>
 
-      {/* Contenido principal scrollable */}
+      {/* Contenido principal en ScrollView */}
       <ScrollView style={orderScreenStyles.container}>
         <Text style={orderScreenStyles.headerText}>Menú del Restaurante</Text>
         <View style={{ marginBottom: 24 }}>
@@ -246,7 +276,7 @@ const OrdersScreen = () => {
           ))}
         </View>
 
-        {/* Línea divisoria */}
+        {/* Línea divisoria para separar secciones */}
         <View style={orderScreenStyles.divider} />
 
         {/* Sección del carrito */}
@@ -288,7 +318,7 @@ const OrdersScreen = () => {
         <Toast />
       </ScrollView>
 
-      {/* Footer idéntico al index de mesero */}
+      {/* FOOTER: navegación similar a index de mesero */}
       <View style={meseroStyles.footer}>
         <TouchableOpacity onPress={() => router.push('/mesero')}>
           <Image

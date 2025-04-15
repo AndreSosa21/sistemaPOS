@@ -1,23 +1,41 @@
+// ===============================================================
+// Archivo: chef/index
+// Propósito: Pantalla para el Chef, que muestra en tiempo real 
+// las órdenes filtradas por estado, permite actualizar el estado
+// de las órdenes y muestra el tiempo transcurrido desde su creación.
+// ===============================================================
+
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Image, ScrollView } from "react-native";
+// Funciones de Firestore para escucha en tiempo real y actualización de documentos
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
+// Configuración de la base de datos Firebase
 import { db } from "../../utils/FireBaseConfig";
+// Hook para navegación con Expo Router
 import { useRouter } from "expo-router";
+// Importación de estilos para Chef
 import styles from "../../Styles/chef/index";
+// Uso del contexto de autenticación para obtener información del usuario
 import { AuthContext } from "../../context/AuthContext";
 
-// Estados para Chef (sin incluir "pagado")
+// Lista de estados que se usarán en esta pantalla (excluye "pagado")
 const ESTADOS_CHEF = ["todos", "pendiente", "preparando", "listo", "entregado"];
 
 const ChefScreen = () => {
+  // Estado para almacenar la lista de órdenes obtenidas en tiempo real
   const [orders, setOrders] = useState<any[]>([]);
+  // Estado para el filtro seleccionado; por defecto "todos"
   const [filter, setFilter] = useState("todos");
+  // Hook para navegación
   const router = useRouter();
+  // Extraer datos de usuario desde el contexto de autenticación
   const { userType, email } = useContext(AuthContext);
+  // Estado para almacenar un nombre de usuario extraído del email
   const [username, setUsername] = useState("");
+  // Estado para almacenar y actualizar el tiempo actual, usado para calcular el tiempo transcurrido
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Actualización del tiempo cada segundo (para mostrar tiempo transcurrido)
+  // Se actualiza el estado 'currentTime' cada segundo para mostrar el tiempo transcurrido
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -25,21 +43,27 @@ const ChefScreen = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Listener en tiempo real de todas las órdenes
+  // Listener en tiempo real para obtener todas las órdenes desde Firestore
   useEffect(() => {
     const q = collection(db, "orders");
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const ordersData = querySnapshot.docs.map((docItem) => ({
-        ...docItem.data(),
-        id: docItem.id,
-      }));
-      setOrders(ordersData);
-    }, (error) => {
-      console.error("Error al obtener las órdenes: ", error);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        // Se mapean los documentos para incluir su id y datos
+        const ordersData = querySnapshot.docs.map((docItem) => ({
+          ...docItem.data(),
+          id: docItem.id,
+        }));
+        setOrders(ordersData);
+      },
+      (error) => {
+        console.error("Error al obtener las órdenes: ", error);
+      }
+    );
     return () => unsubscribe();
   }, []);
 
+  // Extraer el nombre de usuario a partir del email
   useEffect(() => {
     if (email) {
       const user = email.split("@")[0];
@@ -47,12 +71,14 @@ const ChefScreen = () => {
     }
   }, [userType, email]);
 
-  // Función para actualizar el estado de la orden
+  // Función para actualizar el estado de una orden al presionar el botón
   const updateOrderStatus = async (orderId: string) => {
+    // Busca la orden correspondiente en el array
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
 
     let newStatus = order.orderStatus;
+    // Lógica para actualizar el estado: pendiente -> preparando -> listo -> entregado
     if (order.orderStatus === "pendiente") {
       newStatus = "preparando";
     } else if (order.orderStatus === "preparando") {
@@ -60,12 +86,14 @@ const ChefScreen = () => {
     } else if (order.orderStatus === "listo") {
       newStatus = "entregado";
     } else if (order.orderStatus === "entregado") {
-      return;
+      return; // Si ya es "entregado", no se actualiza
     }
     try {
+      // Actualiza el documento en Firestore con el nuevo estado
       await updateDoc(doc(db, "orders", orderId), {
         orderStatus: newStatus,
       });
+      // Actualiza el estado local para reflejar el cambio
       const updatedOrder = { ...order, orderStatus: newStatus };
       setOrders(orders.map((o) => (o.id === orderId ? updatedOrder : o)));
     } catch (error) {
@@ -73,7 +101,7 @@ const ChefScreen = () => {
     }
   };
 
-  // Función para devolver el color de los botones según el estado
+  // Función para obtener el color del botón según el estado de la orden
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pendiente":
@@ -89,7 +117,7 @@ const ChefScreen = () => {
     }
   };
 
-  // Función para formatear el tiempo transcurrido
+  // Función para formatear el tiempo transcurrido desde la creación de la orden
   const formatTimeDiff = (createdAt: any) => {
     let startDate: Date;
     if (createdAt?.toDate) {
@@ -108,13 +136,11 @@ const ChefScreen = () => {
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Filtrar según el estado seleccionado
+  // Se filtran las órdenes con base en el filtro seleccionado
   const filteredOrders =
-    filter === "todos"
-      ? orders
-      : orders.filter((o) => o.orderStatus === filter);
+    filter === "todos" ? orders : orders.filter((o) => o.orderStatus === filter);
 
-  // Renderizado de cada orden con botones de estado y tiempo transcurrido
+  // Renderiza cada elemento de la lista de órdenes
   const renderOrder = ({ item }: { item: any }) => (
     <View style={styles.orderItem}>
       <Text style={styles.orderTitle}>Mesa: {item.table}</Text>
@@ -125,6 +151,7 @@ const ChefScreen = () => {
           </Text>
         ))}
       </View>
+      {/* Botón con color según el estado; al presionarlo se actualiza el estado */}
       <TouchableOpacity
         style={[styles.statusButton, { backgroundColor: getStatusColor(item.orderStatus) }]}
         onPress={() => updateOrderStatus(item.id)}
@@ -139,6 +166,7 @@ const ChefScreen = () => {
             : "Entregado"}
         </Text>
       </TouchableOpacity>
+      {/* Muestra el tiempo transcurrido desde la creación de la orden */}
       <Text style={styles.timeText}>
         Tiempo transcurrido: {formatTimeDiff(item.createdAt)} (hh:mm:ss)
       </Text>
@@ -147,6 +175,7 @@ const ChefScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header con saludo y notificación */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello! {username}</Text>
         <TouchableOpacity onPress={() => router.push("/chef")}>
@@ -157,8 +186,12 @@ const ChefScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Filtros de órdenes */}
-      <View style={styles.filtersContainer}>
+      {/* Filtros de órdenes con scroll horizontal */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.filtersContainer}
+      >
         {ESTADOS_CHEF.map((estado) => (
           <TouchableOpacity
             key={estado}
@@ -176,8 +209,9 @@ const ChefScreen = () => {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
+      {/* Lista de órdenes filtradas */}
       <FlatList
         data={filteredOrders}
         keyExtractor={(item) => item.id}
@@ -185,6 +219,7 @@ const ChefScreen = () => {
         renderItem={renderOrder}
       />
 
+      {/* Footer con botones de navegación */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push("/chef")}>
           <Image

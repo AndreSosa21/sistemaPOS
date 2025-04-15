@@ -1,3 +1,11 @@
+// ===============================================================
+// Archivo: context/TablesContext.tsx
+// Propósito: Proveer la gestión de mesas en el sistema.
+// Permite actualizar el estado de las mesas, inicializar las mesas
+// en Firebase en caso de estar vacías y escuchar cambios en la colección
+// "orders" para actualizar el estado de las mesas (Available/Occupied).
+// ===============================================================
+
 import React, {
   createContext,
   useContext,
@@ -8,26 +16,30 @@ import React, {
 import { db } from '../utils/FireBaseConfig';
 import { collection, onSnapshot, getDocs, addDoc } from 'firebase/firestore';
 
+// Definición de los posibles estados de mesa
 export type TableStatus = 'Available' | 'Occupied';
 
+// Interfaz para representar una mesa
 export interface Table {
   id: string;
   name: string;
   status: TableStatus;
 }
 
+// Define las propiedades del contexto de mesas
 interface TableContextProps {
   tables: Table[];
   updateTableStatus: (tableId: string, status: TableStatus) => void;
 }
 
+// Se crea el contexto con valores por defecto
 const TableContext = createContext<TableContextProps>({
   tables: [],
   updateTableStatus: () => {},
 });
 
 export const TableProvider = ({ children }: { children: ReactNode }) => {
-  // Mesas por defecto
+  // Se definen mesas iniciales por defecto
   const initialTables: Table[] = [
     { id: 'T-1', name: 'T-1', status: 'Available' },
     { id: 'T-2', name: 'T-2', status: 'Available' },
@@ -37,8 +49,10 @@ export const TableProvider = ({ children }: { children: ReactNode }) => {
     { id: 'T-6', name: 'T-6', status: 'Available' },
   ];
 
+  // Estado para almacenar la lista de mesas
   const [tables, setTables] = useState<Table[]>(initialTables);
 
+  // Función para actualizar el estado de una mesa
   const updateTableStatus = (tableId: string, status: TableStatus) => {
     setTables((prevTables) =>
       prevTables.map((table) =>

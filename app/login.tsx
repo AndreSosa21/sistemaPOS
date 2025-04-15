@@ -1,4 +1,4 @@
-// app/login.tsx
+// Importaciones necesarias de React, componentes de React Native, navegación y contextos para la autenticación
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -8,16 +8,23 @@ import { FirebaseError } from 'firebase/app';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../utils/FireBaseConfig';
 
+// Componente de Login para la autenticación del usuario
 const Login = () => {
+  // Estados locales para email, password, loading, modal de error y mensaje de error
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // Uso del contexto de autenticación para la función login
   const { login } = useContext(AuthContext);
+  // Hook para la navegación
   const router = useRouter();
 
+  // Función encargada de manejar el inicio de sesión
   const handleLogin = async () => {
+    // Validación de campos vacíos
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Por favor, complete todos los campos.');
       setModalVisible(true);
@@ -27,12 +34,15 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Intenta iniciar sesión con el email y password proporcionados
       const userCredential = await login(email, password);
       const user = userCredential.user;
       
+      // Obtiene el documento del usuario en la colección 'users' de Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
 
       if (userDoc.exists()) {
+        // Se extrae el tipo de usuario del documento para dirigir al usuario a la pantalla correspondiente
         const userType = userDoc.data().userType;
         
         switch(userType) {
@@ -49,16 +59,19 @@ const Login = () => {
             router.push('/admin');
             break;
           default:
+            // En caso de rol no válido, se muestra un mensaje de error y se redirige de nuevo a login
             setErrorMessage('Rol de usuario no válido');
             setModalVisible(true);
             router.push('/login');
         }
       } else {
+        // En caso de que el documento del usuario no exista en Firestore, se muestra un error y se redirige a login
         setErrorMessage('Usuario no registrado en la base de datos');
         setModalVisible(true);
         router.push('/login');
       }
     } catch (error) {
+      // Manejo de errores para la autenticación y redirección de mensajes específicos según el error de Firebase
       setLoading(false);
 
       if (error instanceof FirebaseError) {
@@ -80,6 +93,7 @@ const Login = () => {
         setErrorMessage(errorMessage);
         setModalVisible(true);
       } else {
+        // Manejo de cualquier otro error inesperado
         setErrorMessage('Error inesperado');
         console.error('Error detallado:', error);
         setModalVisible(true);
@@ -88,9 +102,12 @@ const Login = () => {
   };
 
   return (
+    // Contenedor principal del login utilizando estilos importados
     <View style={loginStyles.container}>
+      {/* Título de la aplicación */}
       <Text style={loginStyles.title}>Welcome to POSitive</Text>
 
+      {/* Campo de entrada para el email */}
       <View style={loginStyles.inputContainer}>
         <Image source={require('../assets/images/persona.png')} style={loginStyles.icon} />
         <TextInput
@@ -103,6 +120,7 @@ const Login = () => {
         />
       </View>
 
+      {/* Campo de entrada para la contraseña */}
       <View style={loginStyles.inputContainer}>
         <Image source={require('../assets/images/candado.png')} style={loginStyles.icon} />
         <TextInput
@@ -114,6 +132,7 @@ const Login = () => {
         />
       </View>
 
+      {/* Botón de Login que invoca la función handleLogin */}
       <TouchableOpacity 
         style={loginStyles.button} 
         onPress={handleLogin} 
@@ -124,6 +143,7 @@ const Login = () => {
         </Text>
       </TouchableOpacity>
 
+      {/* Enlace para redirigir a la página de registro */}
       <View style={loginStyles.loginLinkContainer}>
         <Text style={loginStyles.linkText}>Don't have an account? </Text>
         <TouchableOpacity onPress={() => router.push('/register')}>
@@ -131,7 +151,7 @@ const Login = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal de Error */}
+      {/* Modal de Error para mostrar mensajes de error al usuario */}
       <Modal
         animationType="slide"
         transparent={true}

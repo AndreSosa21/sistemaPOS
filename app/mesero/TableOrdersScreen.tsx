@@ -1,18 +1,33 @@
+// ===============================================================
+// Archivo: mesero/TableOrdersScreen.tsx
+// Propósito: Pantalla que muestra todas las órdenes correspondientes 
+// a una mesa específica. Se agrupan los ítems similares y se muestran
+// detalles como fecha, total y estado de la orden.
+// ===============================================================
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+// Hooks de Expo Router para navegación y obtención de parámetros de URL
 import { useRouter, useLocalSearchParams } from 'expo-router';
+// Importación de funciones de Firestore para consultas en tiempo real
 import { db } from '../../utils/FireBaseConfig';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+// Se utiliza el contexto de mesas para obtener los datos de mesas
 import { useTable } from '../../context/TablesContext';
+// Estilos específicos para la pantalla de órdenes por mesa
 import { tableOrdersStyles } from '../../Styles/mesero/index';
 
 const TableOrdersScreen = () => {
   const router = useRouter();
+  // Se obtiene el parámetro 'table' de la URL
   const { table } = useLocalSearchParams();
+  // Se obtienen las mesas desde el contexto
   const { tables } = useTable();
+  // Estado para almacenar las órdenes de la mesa
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Escucha en tiempo real las órdenes que correspondan a la mesa indicada
   useEffect(() => {
     const q = query(collection(db, 'orders'), where('table', '==', table));
 
@@ -28,8 +43,10 @@ const TableOrdersScreen = () => {
     return () => unsubscribe();
   }, [table]);
 
+  // Busca la información de la mesa en el array de mesas
   const tableData = tables.find((t) => t.id === table);
 
+  // Función para agrupar los ítems de una orden por título
   const groupItems = (items: any[]) => {
     const grouped: { [title: string]: any } = {};
 
@@ -100,6 +117,7 @@ const TableOrdersScreen = () => {
         />
       )}
 
+      {/* Botón para regresar a la pantalla anterior */}
       <TouchableOpacity onPress={() => router.back()} style={tableOrdersStyles.backButton}>
         <Text style={tableOrdersStyles.backButtonText}>Volver</Text>
       </TouchableOpacity>
