@@ -6,20 +6,33 @@ import {
   TouchableOpacity, 
   FlatList, 
   ScrollView, 
-  Modal
+  Modal 
 } from 'react-native';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../../utils/FireBaseConfig';
 import { AuthContext } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { useAccount } from '../../context/AccountContext';
 import { cajeroStyles, modalStyles } from '../../Styles/caja/index';
+import Colors from "../../assets/colors";
+
+
+// Lista de estados para Cajero (incluye "pagado")
+const ESTADOS_CAJERO = ['todos', 'pendiente', 'preparando', 'entregado', 'pagado'];
+
+const ESTADO_COLORES_CAJERO: any = {
+  pendiente: '#f4a261',
+  preparando: '#2a9d8f',
+  entregado: '#264653',
+  pagado: '#1d3557',
+};
 
 const Cajero = () => {
   const { email } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [filter, setFilter] = useState('todos');
   const router = useRouter();
   const { markOrderAsPaid } = useAccount();
 
@@ -42,31 +55,28 @@ const Cajero = () => {
     }
   }, [email]);
 
-  // Escucha en tiempo real los pedidos con estado "entregado"
+  // Escucha en tiempo real TODAS las órdenes
   useEffect(() => {
-    if (!selectedOrder) {
-      const ordersRef = collection(db, 'orders');
-      const q = query(ordersRef, where('orderStatus', '==', 'entregado'));
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          if (isMounted.current) {
-            const ordersData = snapshot.docs.map((docItem) => ({
-              id: docItem.id,
-              ...docItem.data(),
-            }));
-            setOrders(ordersData);
-          }
-        },
-        (error) => {
-          console.error('[Cajero] Error al obtener las órdenes entregadas:', error);
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef);
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        if (isMounted.current) {
+          const ordersData = snapshot.docs.map((docItem) => ({
+            id: docItem.id,
+            ...docItem.data(),
+          }));
+          setOrders(ordersData);
         }
-      );
-      return () => unsubscribe();
-    }
-  }, [selectedOrder]);
+      },
+      (error) => {
+        console.error('[Cajero] Error al obtener las órdenes:', error);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
-  // Calcula subtotal, impuesto (10%) y total de la orden
   const calculateTotals = (order: any) => {
     const subtotal = order.items?.reduce(
       (sum: number, item: any) =>
@@ -78,7 +88,6 @@ const Cajero = () => {
     return { subtotal, tax, total };
   };
 
-  // Abre el modal de confirmación y almacena la orden y total a pagar
   const handlePay = (order: any) => {
     const { total } = calculateTotals(order);
     setConfirmTotal(total);
@@ -86,18 +95,25 @@ const Cajero = () => {
     setConfirmVisible(true);
   };
 
-  // Renderiza la tarjeta de cada pedido en el listado
+  // Filtrar según el estado seleccionado
+  const filteredOrders = filter === 'todos'
+    ? orders
+    : orders.filter((o) => o.orderStatus === filter);
+
   const renderOrderCard = ({ item }: { item: any }) => (
-    <TouchableOpacity 
-      style={cajeroStyles.orderCard} 
+    <TouchableOpacity
+      style={[
+        cajeroStyles.orderCard,
+        { borderLeftColor: ESTADO_COLORES_CAJERO[item.orderStatus] || '#ccc' },
+      ]}
       onPress={() => setSelectedOrder(item)}
     >
       <Text style={cajeroStyles.orderCardText}>Mesa: {item.table}</Text>
+      <Text style={cajeroStyles.orderCardText}>Estado: {item.orderStatus}</Text>
       <Text style={cajeroStyles.orderCardText}>Platos: {item.items?.length || 0}</Text>
     </TouchableOpacity>
   );
 
-  // Vista de detalle de la orden seleccionada
   const renderOrderDetail = () => {
     const { subtotal, tax, total } = calculateTotals(selectedOrder);
     return (
@@ -121,14 +137,14 @@ const Cajero = () => {
             Total: ${total.toFixed(2)}
           </Text>
         </View>
-        <TouchableOpacity 
-          style={cajeroStyles.payButton} 
+        <TouchableOpacity
+          style={cajeroStyles.payButton}
           onPress={() => handlePay(selectedOrder)}
         >
           <Text style={cajeroStyles.payButtonText}>PAGAR</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={cajeroStyles.backButton} 
+        <TouchableOpacity
+          style={cajeroStyles.backButton}
           onPress={() => setSelectedOrder(null)}
         >
           <Text style={cajeroStyles.backButtonText}>Volver al listado</Text>
@@ -137,7 +153,6 @@ const Cajero = () => {
     );
   };
 
-  // Función que procesa la orden al confirmar el pago en el modal
   const processPayment = async () => {
     if (!orderToPay) return;
     try {
@@ -159,28 +174,41 @@ const Cajero = () => {
         </View>
         <Image source={require('../../assets/images/campana.png')} style={cajeroStyles.icon} />
       </View>
-      {selectedOrder ? (
-        renderOrderDetail()
-      ) : (
-        <View style={cajeroStyles.body}>
-          <View style={cajeroStyles.orderTitleContainer}>
-            <Text style={cajeroStyles.title}>Órdenes Entregadas</Text>
-            <Image source={require('../../assets/images/orden.png')} style={cajeroStyles.iconSmall} />
-          </View>
-          {orders.length === 0 ? (
-            <Text style={{ marginTop: 20 }}>No hay órdenes entregadas</Text>
-          ) : (
-            <FlatList
-              data={orders}
-              keyExtractor={(item) => item.id}
-              renderItem={renderOrderCard}
-              contentContainerStyle={{ paddingVertical: 10 }}
-            />
-          )}
+
+      {/* Filtros de órdenes */}
+      {!selectedOrder && (
+        <View style={cajeroStyles.filtersContainer}>
+          {ESTADOS_CAJERO.map((estado) => (
+            <TouchableOpacity
+              key={estado}
+              onPress={() => setFilter(estado)}
+              style={[
+                cajeroStyles.filterButton,
+                {
+                  backgroundColor:
+                    filter === estado ? (ESTADO_COLORES_CAJERO[estado] || Colors.primary) : Colors.tableInactive,
+                },
+              ]}
+            >
+              <Text style={cajeroStyles.filterButtonText}>
+                {estado.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
-      {/* Modal de confirmación de pago */}
+      {selectedOrder ? (
+        renderOrderDetail()
+      ) : (
+        <FlatList
+          data={filteredOrders}
+          keyExtractor={(item) => item.id}
+          renderItem={renderOrderCard}
+          contentContainerStyle={{ padding: 10 }}
+        />
+      )}
+
       <Modal visible={confirmVisible} animationType="fade" transparent>
         <View style={modalStyles.modalBackground}>
           <View style={modalStyles.modalContainer}>
@@ -207,15 +235,12 @@ const Cajero = () => {
       </Modal>
 
       <View style={cajeroStyles.footer}>
-        {/* Botón de Inventario: Redirige a /caja/Inventory */}
         <TouchableOpacity onPress={() => router.push('/caja/Inventory')}>
           <Image source={require('../../assets/images/inventario.png')} style={cajeroStyles.iconFooter} />
         </TouchableOpacity>
-        {/* Botón de Home */}
         <TouchableOpacity onPress={() => router.push('/caja')}>
           <Image source={require('../../assets/images/home.png')} style={cajeroStyles.iconFooter} />
         </TouchableOpacity>
-        {/* Botón de Salida */}
         <TouchableOpacity onPress={() => router.push('/login')}>
           <Image source={require('../../assets/images/out.png')} style={cajeroStyles.iconFooter} />
         </TouchableOpacity>

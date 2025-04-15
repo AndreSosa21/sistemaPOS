@@ -1,16 +1,25 @@
 import { StyleSheet } from "react-native";
 
+const Colors = {
+  primary: "#DE3C4B",
+  secondary: "#63A46C",
+  background: "#F7F7F7",
+  textDark: "#000000",
+  textLight: "#FFFFFF",
+  tableInactive: "#EDEDED",
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 40,
-    backgroundColor: "#DE3C4B", // Mismo color que en admin
+    backgroundColor: Colors.primary,
     alignItems: "center",
     width: "100%",
   },
@@ -65,11 +74,29 @@ const styles = StyleSheet.create({
     color: "#777",
     marginTop: 10,
   },
+  // ESTILOS AGREGADOS PARA FILTROS
+  filtersContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 10,
+    gap: 10,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: Colors.tableInactive,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: Colors.textDark,
+  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#DE3C4B",
+    backgroundColor: Colors.primary,
     paddingVertical: 10,
     width: "100%",
     position: "absolute",

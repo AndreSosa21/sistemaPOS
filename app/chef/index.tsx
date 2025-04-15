@@ -3,31 +3,33 @@ import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../utils/FireBaseConfig";
 import { useRouter } from "expo-router";
-import styles from "../../Styles/chef";
+import styles from "../../Styles/chef/index";
 import { AuthContext } from "../../context/AuthContext";
 
-export default function ChefScreen() {
+// Estados para Chef (sin incluir "pagado")
+const ESTADOS_CHEF = ["todos", "pendiente", "preparando", "listo", "entregado"];
+
+const ChefScreen = () => {
   const [orders, setOrders] = useState<any[]>([]);
+  const [filter, setFilter] = useState("todos");
   const router = useRouter();
   const { userType, email } = useContext(AuthContext);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Actualización del tiempo cada segundo (para mostrar tiempo transcurrido)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // Recuperar las órdenes desde Firestore y almacenar el id del documento
+  // Listener en tiempo real de todas las órdenes
   useEffect(() => {
     const q = collection(db, "orders");
-
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const ordersData = querySnapshot.docs.map((docItem) => ({
-        createdAt: docItem.data().createdAt,
         ...docItem.data(),
         id: docItem.id,
       }));
@@ -35,14 +37,12 @@ export default function ChefScreen() {
     }, (error) => {
       console.error("Error al obtener las órdenes: ", error);
     });
-
-    // Limpiar el listener al desmontar el componente
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     if (email) {
-      const user = email.split('@')[0];
+      const user = email.split("@")[0];
       setUsername(user);
     }
   }, [userType, email]);
@@ -60,11 +60,9 @@ export default function ChefScreen() {
     } else if (order.orderStatus === "listo") {
       newStatus = "entregado";
     } else if (order.orderStatus === "entregado") {
-      return; // No se actualiza si ya está entregado
+      return;
     }
-
     try {
-      // Actualizar en Firestore usando el id del documento
       await updateDoc(doc(db, "orders", orderId), {
         orderStatus: newStatus,
       });
@@ -75,7 +73,7 @@ export default function ChefScreen() {
     }
   };
 
-  // Función para obtener el color del botón según el estado de la orden
+  // Función para devolver el color de los botones según el estado
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pendiente":
@@ -91,9 +89,8 @@ export default function ChefScreen() {
     }
   };
 
-  // Función para formatear la diferencia de tiempo en hh:mm:ss
+  // Función para formatear el tiempo transcurrido
   const formatTimeDiff = (createdAt: any) => {
-    // Se asume que createdAt es un Timestamp de Firebase. Si no, se puede ajustar.
     let startDate: Date;
     if (createdAt?.toDate) {
       startDate = createdAt.toDate();
@@ -106,18 +103,20 @@ export default function ChefScreen() {
     const seconds = Math.floor((diff / 1000) % 60);
     const minutes = Math.floor((diff / (1000 * 60)) % 60);
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    return `${hours.toString().padStart(2, '0')}:${minutes
+    return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
-      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Renderizado de cada orden en la lista
+  // Filtrar según el estado seleccionado
+  const filteredOrders = filter === "todos"
+    ? orders
+    : orders.filter((o) => o.orderStatus === filter);
+
+  // Renderizado de cada orden con botones de estado y tiempo transcurrido
   const renderOrder = ({ item }: { item: any }) => (
     <View style={styles.orderItem}>
-      {/* Nombre de la mesa */}
       <Text style={styles.orderTitle}>Mesa: {item.table}</Text>
-
-      {/* Lista de platos */}
       <View style={styles.dishesList}>
         {item.items.map((dish: any, index: number) => (
           <Text key={index} style={styles.dishText}>
@@ -125,8 +124,6 @@ export default function ChefScreen() {
           </Text>
         ))}
       </View>
-
-      {/* Botón que muestra y actualiza el estado de la orden */}
       <TouchableOpacity
         style={[styles.statusButton, { backgroundColor: getStatusColor(item.orderStatus) }]}
         onPress={() => updateOrderStatus(item.id)}
@@ -141,8 +138,6 @@ export default function ChefScreen() {
             : "Entregado"}
         </Text>
       </TouchableOpacity>
-
-      {/* Tiempo transcurrido actualizado */}
       <Text style={styles.timeText}>
         Tiempo transcurrido: {formatTimeDiff(item.createdAt)} (hh:mm:ss)
       </Text>
@@ -150,10 +145,9 @@ export default function ChefScreen() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Cabecera */}
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello! {username} </Text>
+        <Text style={styles.headerText}>Hello! {username}</Text>
         <TouchableOpacity onPress={() => router.push("/chef")}>
           <Image
             source={require("../../assets/images/campana.png")}
@@ -162,15 +156,34 @@ export default function ChefScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Lista de órdenes */}
+      {/* Filtros de órdenes */}
+      <View style={styles.filtersContainer}>
+        {ESTADOS_CHEF.map((estado) => (
+          <TouchableOpacity
+            key={estado}
+            onPress={() => setFilter(estado)}
+            style={[
+              styles.filterButton,
+              {
+                backgroundColor:
+                  filter === estado ? getStatusColor(estado) : "#e0e0e0",
+              },
+            ]}
+          >
+            <Text style={styles.filterButtonText}>
+              {estado.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <FlatList
-        data={orders}
+        data={filteredOrders}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.ordersList}
         renderItem={renderOrder}
       />
 
-      {/* Footer fijo */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push("/chef")}>
           <Image
@@ -193,4 +206,6 @@ export default function ChefScreen() {
       </View>
     </View>
   );
-}
+};
+
+export default ChefScreen;

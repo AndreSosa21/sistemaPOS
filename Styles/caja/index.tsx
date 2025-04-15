@@ -141,6 +141,23 @@ export const cajeroStyles = StyleSheet.create({
     height: 26,
     resizeMode: 'contain',
   },
+  // ESTILOS NUEVOS AÑADIDOS AQUÍ 👇
+  filtersContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: 10,
+    gap: 10,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: Colors.tableInactive,
+  },
+  filterButtonText: {
+    color: Colors.textDark,
+    fontWeight: 'bold',
+  },
 });
 
 export const modalStyles = StyleSheet.create({
