@@ -8,6 +8,7 @@ Bienvenido a **POSitive**, una aplicación desarrollada con [Expo](https://expo.
 
 La estructura principal de la aplicación es la siguiente:
 
+```bash
 project/
 ├── app/                   # Contiene las pantallas y rutas de la app
 │   ├── _layout.tsx        # Layout global y providers para la app
@@ -29,6 +30,8 @@ project/
 │   └── FireBaseConfig.ts  # Configuración de Firebase (auth, db, storage)
 ├── assets/                # Imágenes, íconos y otros recursos multimedia
 └── package.json           # Dependencias y scripts del proyecto
+
+```
 
 ---
 
